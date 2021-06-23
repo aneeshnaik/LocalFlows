@@ -8,6 +8,7 @@ Author: A. P. Naik
 """
 import sys
 import numpy as np
+from os.path import exists
 from emcee import EnsembleSampler as Sampler
 
 from galpy.potential import PowerSphericalPotentialwCutoff as BulgePhi
@@ -74,17 +75,21 @@ def qiso_lndf(theta, lim, qdfs, weights):
     return lnf
 
 
-def sample(ddtype, lim):
+def sample(seed, ddtype, lim, savedir):
     """
     Sample 10^6 particles from qDF, adopting given random seed.
 
     Parameters
     ----------
+    seed : int
+        Random seed.
     ddtype : int
         0 for no dark disc, 1 for light dark disc, 2 for heavy.
     lim_pc : float
         Half-width of R, z region, i.e. particles are allowed with
         |R-R_sun| < lim, likewise z. UNITS: parsecs.
+    savedir : str
+        Directory into which dataset is saved.
 
     Returns
     -------
@@ -130,13 +135,13 @@ def sample(ddtype, lim):
         qdfs.append(df)
 
     # set up RNG
-    rng = np.random.default_rng(42)
+    rng = np.random.default_rng(seed)
 
     # dataset hyperparams
-    N = 1000000
+    N = 10000
 
     # set up sampler
-    nwalkers, ndim = 20, 5
+    nwalkers, ndim = 40, 5
     n_burnin = 1000
     n_iter = N
     thin = nwalkers
@@ -166,7 +171,7 @@ def sample(ddtype, lim):
     vR = s.flatchain[:, 2]
     vphi = s.flatchain[:, 3]
     vz = s.flatchain[:, 4]
-    np.savez(f"{ddtype}_{lim_pc:.0f}", R=R, z=z, vR=vR, vphi=vphi, vz=vz,
+    np.savez(savedir + f"{seed}", R=R, z=z, vR=vR, vphi=vphi, vz=vz,
              lnprob=s.lnprobability)
     return
 
@@ -174,11 +179,16 @@ def sample(ddtype, lim):
 if __name__ == "__main__":
 
     # parse arguments
-    assert len(sys.argv) == 3
-    ddtype = int(sys.argv[1])
-    lim_pc = float(sys.argv[2])
+    assert len(sys.argv) == 5
+    seed = int(sys.argv[1])
+    ddtype = int(sys.argv[2])
+    lim_pc = float(sys.argv[3])
+    savedir = sys.argv[4]
+    if savedir[-1] != '/':
+        savedir += '/'
     assert ddtype in [0, 1, 2]
     assert lim_pc in [100, 400, 1600]
+    assert exists(savedir)
 
     # run sampler
-    sample(ddtype, lim_pc)
+    sample(seed, ddtype, lim_pc, savedir)
