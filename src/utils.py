@@ -39,7 +39,7 @@ def get_rescaled_tensor(dfile, u_pos, u_vel, cen):
 
     """
     # load data
-    print("Loading data...")
+    print("Loading data...", flush=True)
     data = np.load(dfile)
 
     # shift and rescale positions

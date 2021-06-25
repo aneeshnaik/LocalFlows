@@ -240,7 +240,7 @@ def train_flow(data, seed, n_dim=5, n_layers=8, n_hidden=64,
     losses = np.zeros(num_epochs + 1)
     loss = calc_total_loss(flow, data)
     losses[0] = loss
-    print(f"Pre-training total loss={loss:.6e}")
+    print(f"Pre-training total loss={loss:.6e}", flush=True)
 
     # train; loop over epochs
     best_epoch = -1
