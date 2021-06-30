@@ -11,14 +11,9 @@ import numpy as np
 from os.path import exists
 from emcee import EnsembleSampler as Sampler
 
-from galpy.potential import PowerSphericalPotentialwCutoff as BulgePhi
-from galpy.potential import MiyamotoNagaiPotential as DiscPhi
-from galpy.potential import NFWPotential as HaloPhi
-from galpy.actionAngle import actionAngleStaeckel
-from galpy.df import quasiisothermaldf as qdf
-
 sys.path.append("../src")
 from constants import kpc
+from qdf import create_MW_potential, create_qdf_ensemble
 
 
 def qiso_lndf(theta, lim, qdfs, weights):
@@ -100,39 +95,20 @@ def sample(seed, ddtype, lim, savedir):
     lim = (lim_pc / 1000) * kpc
 
     # set up MW potential
-    if ddtype == 0:
-        bulge = BulgePhi(alpha=1.8, rc=1.9 / 8., normalize=0.05)
-        disc = DiscPhi(a=3. / 8., b=0.28 / 8., normalize=0.6)
-        halo = HaloPhi(a=16 / 8., normalize=0.35)
-        mw = bulge + disc + halo
-    elif ddtype == 1:
-        bulge = BulgePhi(alpha=1.8, rc=1.9 / 8., normalize=0.05)
-        disc1 = DiscPhi(a=3. / 8., b=0.28 / 8., normalize=0.6)
-        disc2 = DiscPhi(a=3. / 8., b=0.02 / 8., normalize=0.03)
-        halo = HaloPhi(a=16 / 8., normalize=0.32)
-        mw = bulge + disc1 + disc2 + halo
-    elif ddtype == 2:
-        bulge = BulgePhi(alpha=1.8, rc=1.9 / 8., normalize=0.05)
-        disc1 = DiscPhi(a=3. / 8., b=0.28 / 8., normalize=0.6)
-        disc2 = DiscPhi(a=3. / 8., b=0.02 / 8., normalize=0.06)
-        halo = HaloPhi(a=16 / 8., normalize=0.29)
-        mw = bulge + disc1 + disc2 + halo
+    mw = create_MW_potential(ddtype)
 
     # load MAP parameters
     fname = "../data/MAPs.txt"
     data = np.loadtxt(fname, skiprows=1)
+    weights = data[:, 2]
+    hr = data[:, 3] / 8
+    sr = data[:, 4] / 220
+    sz = sr / np.sqrt(3)
+    hsr = np.ones_like(hr)
+    hsz = np.ones_like(hr)
 
     # set up qDFs
-    aA = actionAngleStaeckel(pot=mw, delta=0.45, c=True)
-    qdfs = []
-    weights = []
-    for i in range(6):
-        weights.append(data[i, 2])
-        hr = data[i, 3] / 8
-        sr = data[i, 4] / 220
-        sz = sr / np.sqrt(3)
-        df = qdf(hr, sr, sz, 1., 1., pot=mw, aA=aA, cutcounter=True)
-        qdfs.append(df)
+    qdfs = create_qdf_ensemble(hr, sr, sz, hsr, hsz, pot=mw)
 
     # set up RNG
     rng = np.random.default_rng(seed)
