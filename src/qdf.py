@@ -6,11 +6,15 @@ Various functions relating to the quasi-isothermal DF (qDF).
 Created: June 2021
 Author: A. P. Naik
 """
+import numpy as np
+
 from galpy.potential import PowerSphericalPotentialwCutoff as BulgePhi
 from galpy.potential import MiyamotoNagaiPotential as DiscPhi
 from galpy.potential import NFWPotential as HaloPhi
 from galpy.actionAngle import actionAngleStaeckel
 from galpy.df import quasiisothermaldf as qdf
+
+from constants import kpc
 
 
 def create_MW_potential(ddtype):
@@ -47,3 +51,55 @@ def create_qdf_ensemble(hr, sr, sz, hsr, hsz, pot):
     for i in range(N):
         qdfs.append(create_qdf(hr[i], sr[i], sz[i], hsr[i], hsz[i], pot))
     return qdfs
+
+
+def calc_DF_single(q, p, qdf):
+    """
+    Evaluate single qDF.
+
+    pos: (N, 3) or (3) np array. vel: ditto.
+    Units: metres and m/s respectively.
+    """
+    # check shapes match
+    assert q.shape == p.shape
+
+    # galpy units
+    ux = 8 * kpc
+    uv = 220000
+
+    # unpack and evaluate DF
+    if q.ndim == 2:
+        N = q.shape[0]
+        R = q[:, 0]
+        z = q[:, 2]
+        vR = p[:, 0]
+        vphi = p[:, 1]
+        vz = p[:, 2]
+        f = np.array([qdf(R[i] / ux, vR[i] / uv, vphi[i] / uv, z[i] / ux, vz[i] / uv)[0] for i in range(N)])
+    else:
+        R = q[0]
+        z = q[2]
+        vR = p[0]
+        vphi = p[1]
+        vz = p[2]
+        f = qdf(R / ux, vR / uv, vphi / uv, z / ux, vz / uv)[0]
+    return f
+
+def calc_DF_ensemble(q, p, qdfs, weights):
+    """
+    Evaluate ensemble of qDFs.
+
+    pos: (N, 3) or (3) np array. vel: ditto.
+    Units: metres and m/s respectively.
+    """
+    # check shapes match
+    assert q.shape == p.shape
+
+    # galpy units
+    ux = 8 * kpc
+    uv = 220000
+
+    f = 0
+    for i in range(len(qdfs)):
+        f += weights[i] * calc_DF_single(q, p, qdfs[i])
+    return f
