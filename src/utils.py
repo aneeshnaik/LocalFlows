@@ -10,12 +10,33 @@ import numpy as np
 import torch
 from scipy.integrate import trapezoid
 
+from constants import pi
+
 
 def norm_pdf(f, x):
     """Normalise a PDF over array x."""
     norm = trapezoid(f, x)
     f /= norm
     return f
+
+
+def sample_velocities(Nv, v_max, v_mean, v_min):
+    """Uniformly sample Nv velocities in ball of radius v_max centred on v_mean."""
+    # magnitude
+    v_mag = v_min + (v_max - v_min) * np.random.rand(Nv)
+
+    # orientation
+    phi = 2 * pi * np.random.rand(Nv)
+    theta = np.arccos(2 * np.random.rand(Nv) - 1)
+
+    # convert to Cartesian
+    vx = v_mag * np.sin(theta) * np.cos(phi)
+    vy = v_mag * np.sin(theta) * np.sin(phi)
+    vz = v_mag * np.cos(theta)
+
+    # stack
+    vel = v_mean + np.stack((vx, vy, vz), axis=-1)
+    return vel
 
 
 def logit(x):

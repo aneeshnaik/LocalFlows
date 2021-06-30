@@ -11,10 +11,12 @@ import numpy as np
 from galpy.potential import PowerSphericalPotentialwCutoff as BulgePhi
 from galpy.potential import MiyamotoNagaiPotential as DiscPhi
 from galpy.potential import NFWPotential as HaloPhi
+from galpy.potential import evaluatezforces
+from galpy.util.bovy_conversion import force_in_pcMyr2
 from galpy.actionAngle import actionAngleStaeckel
 from galpy.df import quasiisothermaldf as qdf
 
-from constants import kpc
+from constants import kpc, pc, Myr
 
 
 def create_MW_potential(ddtype):
@@ -37,6 +39,28 @@ def create_MW_potential(ddtype):
         halo = HaloPhi(a=16 / 8., normalize=0.29)
         mw = bulge + disc1 + disc2 + halo
     return mw
+
+
+def calc_MW_az(pos, pot):
+    """
+    Evaluate true z-acceleration under MW model.
+
+    pos: (N, 3) or (3) np array, units: metres.
+    pot: galpy potential
+    """
+    # unpack
+    if pos.ndim == 2:
+        R = pos[:, 0]
+        z = pos[:, 2]
+    else:
+        R = pos[0]
+        z = pos[2]
+
+    # evaluate acc
+    u = 8 * kpc
+    a = evaluatezforces(pot, R / u, z / u)
+    a *= force_in_pcMyr2(220., 8.) * (pc / Myr**2)
+    return a
 
 
 def create_qdf(hr, sr, sz, hsr, hsz, pot):
@@ -85,6 +109,7 @@ def calc_DF_single(q, p, qdf):
         f = qdf(R / ux, vR / uv, vphi / uv, z / ux, vz / uv)[0]
     return f
 
+
 def calc_DF_ensemble(q, p, qdfs, weights):
     """
     Evaluate ensemble of qDFs.
@@ -95,10 +120,7 @@ def calc_DF_ensemble(q, p, qdfs, weights):
     # check shapes match
     assert q.shape == p.shape
 
-    # galpy units
-    ux = 8 * kpc
-    uv = 220000
-
+    # loop over qdfs
     f = 0
     for i in range(len(qdfs)):
         f += weights[i] * calc_DF_single(q, p, qdfs[i])
