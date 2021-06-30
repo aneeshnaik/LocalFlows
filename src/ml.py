@@ -197,6 +197,116 @@ def train_epoch(flow, data, batch_size, optimiser, scheduler):
     return loss
 
 
+def calc_DF_model(q, p, u_q, u_p, q_cen, p_cen, flow):
+    """
+    Evaluate model DF at given phase positions from single flow.
+
+    Parameters
+    ----------
+    q : np.array or torch.tensor, shape (N, 3) or (3)
+        Positions at which to evaluate DF. Either an array shaped (N, 3) for N
+        different phase points, or shape (3) for single phase point.
+        UNITS: metres.
+    p : np.array or torch.tensor, shape (N, 3) or (3)
+        Velocities at which to evaluate DF. UNITS: m/s.
+    u_q : float
+        Rescaling units for positions (i.e. rescaling used to train flow).
+    u_p : float
+        Rescaling units for velocities (i.e. rescaling used to train flow).
+    q_cen : np.array or torch.tensor, shape (3)
+        Position centre. UNITS: m.
+    p_cen : np.array or torch.tensor, shape (3)
+        Velocity centre. UNITS: m/s.
+    flow : nflows.flows.Flow
+        Normalising flow, instance of Flow object from nflows.flows, generated
+        from e.g. load_flow() or setup_MAF().
+
+    Returns
+    -------
+    f : np.array or torch.tensor (shape (N)) or float
+        DF evaluated at given phase points. If inputs are 1D, f is float. If
+        inputs are 2D, f is either np.array or torch.tensor, matching type of
+        input. Gradient information is propagated if torch.tensor.
+
+    """
+    # check shapes match
+    assert q.shape == p.shape
+
+    # check if inputs are 1D or 2D and whether np or torch
+    oneD = False
+    np_array = False
+    if q.ndim == 1:
+        oneD = True
+        q = q[None]
+        p = p[None]
+    if type(q) == np.ndarray:
+        np_array = True
+
+    # convert inputs to torch tensors if nec.
+    if np_array:
+        q = torch.tensor(q)
+        p = torch.tensor(p)
+
+    # rescale units
+    q = (q - torch.tensor(q_cen)) / u_q
+    p = (p - torch.tensor(p_cen)) / u_p
+
+    # concat
+    eta = torch.cat((q[:, [0, 2]], p), dim=-1).float()
+
+    # eval f from flow
+    f = flow.log_prob(eta).exp()
+
+    # sort out format of output
+    if oneD:
+        f = f.item()
+    elif np_array:
+        f = f.detach().numpy()
+    return f
+
+
+def calc_DF_ensemble(q, p, u_q, u_p, q_cen, p_cen, flows):
+    """
+    Evaluate model DF at given phase positions from ensemble of flows.
+
+    Parameters
+    ----------
+    q : np.array or torch.tensor, shape (N, 3) or (3)
+        Positions at which to evaluate DF. Either an array shaped (N, 3) for N
+        different phase points, or shape (3) for single phase point.
+        UNITS: metres.
+    p : np.array or torch.tensor, shape (N, 3) or (3)
+        Velocities at which to evaluate DF. UNITS: m/s.
+    u_q : float
+        Rescaling units for positions (i.e. rescaling used to train flow).
+    u_p : float
+        Rescaling units for velocities (i.e. rescaling used to train flow).
+    q_cen : np.array or torch.tensor, shape (3)
+        Position centre. UNITS: m.
+    p_cen : np.array or torch.tensor, shape (3)
+        Velocity centre. UNITS: m/s.
+    flow : list of nflows.flows.Flow objects
+        List of normalising flows, each is an instance of Flow object from
+        nflows.flows, generated from e.g. load_flow() or setup_MAF().
+
+    Returns
+    -------
+    f : np.array or torch.tensor (shape (N)) or float
+        DF evaluated at given phase points. If inputs are 1D, f is float. If
+        inputs are 2D, f is either np.array or torch.tensor, matching type of
+        input. Gradient information is propagated if torch.tensor.
+
+    """
+    # loop over flows
+    N = len(flows)
+    for i in range(N):
+        if i == 0:
+            f = calc_DF_model(q, p, u_q, u_p, q_cen, p_cen, flows[i]) / N
+        else:
+            f = f + calc_DF_model(q, p, u_q, u_p, q_cen, p_cen, flows[i]) / N
+    return f
+
+
 def train_flow(data, seed, n_dim=5, n_layers=8, n_hidden=64,
                lr=1e-3, lrgamma=0.5, lrpatience=5,
                lrmin=2e-6, lrthres=1e-6, lrcooldown=10,

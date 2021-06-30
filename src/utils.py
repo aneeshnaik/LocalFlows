@@ -8,6 +8,14 @@ Author: A. P. Naik
 """
 import numpy as np
 import torch
+from scipy.integrate import trapezoid
+
+
+def norm_pdf(f, x):
+    """Normalise a PDF over array x."""
+    norm = trapezoid(f, x)
+    f /= norm
+    return f
 
 
 def logit(x):
