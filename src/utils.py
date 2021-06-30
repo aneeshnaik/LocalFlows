@@ -39,6 +39,61 @@ def sample_velocities(Nv, v_max, v_mean, v_min):
     return vel
 
 
+def diff_DF(q, p, df_func, df_args):
+    """
+    Calculate spatial and velocity gradients of DF.
+
+    Parameters
+    ----------
+    q : np.array, shape (N, 3) or (3)
+        Positions at which to evaluate DF gradients. Either an array shaped
+        (N, 3) for N different phase points, or shape (3) for single phase
+        point. UNITS: metres.
+    p : np.array, shape (N, 3) or (3)
+        Velocities at which to evaluate DF gradients. UNITS: m/s.
+    df_func : function
+        Function that evaluates DF for given q and p as described above, e.g.
+        either calc_DF function in hernquist.py or either calc_DF function in
+        ml.py.
+    df_args : dict
+        Additional arguments for df_func, e.g. M and a for the hernquist.py
+        functions.
+
+    Returns
+    -------
+    gradxf : np.array, shape (N, 3) or (3)
+        Spatial gradient of DF. UNITS: [DF units] / metres.
+    gradvf : np.array, shape (N, 3) or (3)
+        Velocity gradient of DF. UNITS: [DF units] / (m/s).
+
+    """
+    # check if 1D
+    oneD = False
+    if q.ndim == 1:
+        oneD = True
+        q = q[None]
+        p = p[None]
+
+    # convert to torch tensors
+    q = torch.tensor(q, requires_grad=True)
+    p = torch.tensor(p, requires_grad=True)
+
+    # evaluate DF
+    f = df_func(q, p, **df_args)
+
+    # calculate f gradients; dfdq and dfdp both have shape (Nv, 3)
+    grad = torch.autograd.grad
+    dfdq = grad(f, q, torch.ones_like(f), create_graph=True)[0]
+    dfdp = grad(f, p, torch.ones_like(f), create_graph=True)[0]
+    if oneD:
+        dfdq = dfdq[0]
+        dfdp = dfdp[0]
+
+    gradxf = dfdq.detach().numpy()
+    gradvf = dfdp.detach().numpy()
+    return gradxf, gradvf
+
+
 def logit(x):
     """Logit function."""
     return np.log(x / (1 - x))
