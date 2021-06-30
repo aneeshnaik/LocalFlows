@@ -83,6 +83,44 @@ def load_flow(state_dict, n_dim, n_layers, n_hidden):
     return flow
 
 
+def load_flow_ensemble(flowdir, inds, n_dim, n_layers, n_hidden):
+    """
+    Load ensemble of flows from array of state dicts.
+
+    Individual flows are expected to be saved as state dicts with filenames
+    'n_best.pth', where x is some integer.
+
+    Parameters
+    ----------
+    flowdir : str
+        Directory in which state dicts are saved
+    inds : array-like
+        Indices of flows, i.e. [n1, n2, n3, ...], where flows are saved as
+        'n1_best.pth' etc.
+    n_dim : int
+        Number of flow input dimensions, i.e. dimensionality of dataset.
+    n_layers : int
+        Number of transformations along the flow.
+    n_hidden : int
+        Number of hidden layers in each transformation.
+
+    Returns
+    -------
+    flows : list
+        List containing normalising flows, i.e. instances of Flow object from
+        nflows.flows.
+    """
+    # check if dir ends in '/', otherwise append
+    if flowdir[-1] != '/':
+        flowdir += '/'
+
+    # loop over inds and load flows
+    flows = []
+    for i in inds:
+        fname = flowdir + f"{i}_best.pth"
+        flows.append(load_flow(fname, n_dim, n_layers, n_hidden))
+    return flows
+
 
 def calc_total_loss(flow, data):
     """
