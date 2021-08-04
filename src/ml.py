@@ -197,7 +197,7 @@ def train_epoch(flow, data, batch_size, optimiser, scheduler):
     return loss
 
 
-def calc_DF_model(q, p, u_q, u_p, q_cen, p_cen, flow):
+def calc_DF_single(q, p, u_q, u_p, q_cen, p_cen, flow):
     """
     Evaluate model DF at given phase positions from single flow.
 
@@ -301,9 +301,9 @@ def calc_DF_ensemble(q, p, u_q, u_p, q_cen, p_cen, flows):
     N = len(flows)
     for i in range(N):
         if i == 0:
-            f = calc_DF_model(q, p, u_q, u_p, q_cen, p_cen, flows[i]) / N
+            f = calc_DF_single(q, p, u_q, u_p, q_cen, p_cen, flows[i]) / N
         else:
-            f = f + calc_DF_model(q, p, u_q, u_p, q_cen, p_cen, flows[i]) / N
+            f = f + calc_DF_single(q, p, u_q, u_p, q_cen, p_cen, flows[i]) / N
     return f
 
 
