@@ -9,7 +9,7 @@ Author: A. P. Naik
 import numpy as np
 
 # loop over datasets
-dir = '2_400'
+dir = 'datasets/2_400'
 
 # loop over files
 R = np.array([])

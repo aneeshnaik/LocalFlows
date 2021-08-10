@@ -12,7 +12,7 @@ import numpy as np
 for dd in ['0', '1', '2']:
     for lim in ['100', '400', '1600']:
 
-        dir = dd + '_' + lim
+        dir = 'datasets/' + dd + '_' + lim
 
         # loop over files
         R = np.array([])
