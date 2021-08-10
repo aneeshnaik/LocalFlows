@@ -162,7 +162,7 @@ if __name__ == "__main__":
     savedir = sys.argv[4]
     if savedir[-1] != '/':
         savedir += '/'
-    assert ddtype in [0, 1, 2]
+    assert ddtype in [0, 1, 2, 3, 4]
     assert lim_pc in [100, 400, 1600]
     assert exists(savedir)
 

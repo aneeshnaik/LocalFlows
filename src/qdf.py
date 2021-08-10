@@ -38,6 +38,18 @@ def create_MW_potential(ddtype):
         disc2 = DiscPhi(a=3. / 8., b=0.02 / 8., normalize=0.06)
         halo = HaloPhi(a=16 / 8., normalize=0.29)
         mw = bulge + disc1 + disc2 + halo
+    elif ddtype == 3:
+        bulge = BulgePhi(alpha=1.8, rc=1.9 / 8., normalize=0.05)
+        disc1 = DiscPhi(a=3. / 8., b=0.28 / 8., normalize=0.6)
+        disc2 = DiscPhi(a=3. / 8., b=0.05 / 8., normalize=0.06)
+        halo = HaloPhi(a=16 / 8., normalize=0.29)
+        mw = bulge + disc1 + disc2 + halo
+    elif ddtype == 4:
+        bulge = BulgePhi(alpha=1.8, rc=1.9 / 8., normalize=0.05)
+        disc1 = DiscPhi(a=3. / 8., b=0.28 / 8., normalize=0.6)
+        disc2 = DiscPhi(a=3. / 8., b=0.1 / 8., normalize=0.06)
+        halo = HaloPhi(a=16 / 8., normalize=0.29)
+        mw = bulge + disc1 + disc2 + halo
     return mw
 
 
