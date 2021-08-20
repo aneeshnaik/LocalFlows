@@ -1,24 +1,30 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-SUMMARY.
+Evolve stars by 500 Myr in MW potential.
 
-Created: MONTH YEAR
+Created: August 2021
 Author: A. P. Naik
 """
 import numpy as np
+import sys
 
-from time import perf_counter as time
 from galpy.orbit import Orbit
 from galpy.util.bovy_conversion import time_in_Gyr
 
+sys.path.append("../src")
 from qdf import create_MW_potential
 from constants import kpc
 
+
 if __name__ == "__main__":
 
+    # parse arguments
+    assert len(sys.argv) == 2
+    idx = int(sys.argv[1])
+
     # load dataset; convert data to galpy units; stack
-    data = np.load("../data/datasets/0_400/compiled.npz")
+    data = np.load(f"../data/datasets/unrestricted/{idx}.npz")
     u_x = 8 * kpc
     u_v = 220000
     R = data['R'] / u_x
@@ -32,13 +38,21 @@ if __name__ == "__main__":
     mw = create_MW_potential(0)
 
     # initialise orbit
-    o = Orbit(eta[:1000])
+    o = Orbit(eta)
 
     # orbit times: 500 Myr
-    ts = np.linspace(0, 0.5 / time_in_Gyr(220., 8.), 10000)
+    ts = np.linspace(0, 0.5 / time_in_Gyr(220., 8.), 2)
 
     # integrate orbit
-    t0 = time()
     o.integrate(ts, mw, method='leapfrog_c')
-    t1 = time()
-    print(f"Took {t1-t0:.1f} seconds")
+
+    # save
+    R = o.getOrbit()[:, -1, 0] * u_x
+    vR = o.getOrbit()[:, -1, 1] * u_v
+    vphi = o.getOrbit()[:, -1, 2] * u_v
+    z = o.getOrbit()[:, -1, 3] * u_x
+    vz = o.getOrbit()[:, -1, 4] * u_v
+    np.savez(
+        f"../data/datasets/evolved/{idx}.npz",
+        R=R, z=z, vR=vR, vphi=vphi, vz=vz,
+    )
