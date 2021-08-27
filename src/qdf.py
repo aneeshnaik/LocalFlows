@@ -20,14 +20,17 @@ from galpy.df import quasiisothermaldf as qdf
 from constants import kpc, pc, Myr
 
 
-def create_MW_potential(darkdisc=False):
+def create_MW_potential(darkdisc=False, ddtype=None):
     """Create galpy MW potential with desired dark disc type."""
     if darkdisc:
-        bulge = Bulge(alpha=1.8, rc=1.9 / 8., normalize=0.05)
-        disc1 = MNDisc(a=3. / 8., b=0.28 / 8., normalize=0.6)
-        disc2 = MN3Disc(hr=3. / 8., hz=0.01 / 8., normalize=0.06)
-        halo = Halo(a=16 / 8., normalize=0.29)
-        mw = bulge + disc1 + disc2 + halo
+        if ddtype == 1:
+            bulge = Bulge(alpha=1.8, rc=1.9 / 8., normalize=0.05)
+            disc1 = MNDisc(a=3. / 8., b=0.28 / 8., normalize=0.6)
+            disc2 = MN3Disc(hr=3. / 8., hz=0.01 / 8., normalize=0.06)
+            halo = Halo(a=16 / 8., normalize=0.29)
+            mw = bulge + disc1 + disc2 + halo
+        else:
+            assert False, "Not supported yet!"
     else:
         bulge = Bulge(alpha=1.8, rc=1.9 / 8., normalize=0.05)
         disc = MNDisc(a=3. / 8., b=0.28 / 8., normalize=0.6)
