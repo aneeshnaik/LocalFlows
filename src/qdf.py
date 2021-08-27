@@ -10,7 +10,7 @@ import numpy as np
 
 from galpy.potential import PowerSphericalPotentialwCutoff as Bulge
 from galpy.potential import MiyamotoNagaiPotential as MNDisc
-from galpy.potential import DoubleExponentialDiskPotential as ExpDisc
+from galpy.potential import MN3ExponentialDiskPotential as MN3Disc
 from galpy.potential import NFWPotential as Halo
 from galpy.potential import evaluatezforces
 from galpy.util.bovy_conversion import force_in_pcMyr2
@@ -25,7 +25,7 @@ def create_MW_potential(darkdisc=False):
     if darkdisc:
         bulge = Bulge(alpha=1.8, rc=1.9 / 8., normalize=0.05)
         disc1 = MNDisc(a=3. / 8., b=0.28 / 8., normalize=0.6)
-        disc2 = ExpDisc(hr=3. / 8., hz=0.01 / 8., normalize=0.06)
+        disc2 = MN3Disc(hr=3. / 8., hz=0.01 / 8., normalize=0.06)
         halo = Halo(a=16 / 8., normalize=0.29)
         mw = bulge + disc1 + disc2 + halo
     else:
