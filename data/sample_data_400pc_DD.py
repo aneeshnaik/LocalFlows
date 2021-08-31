@@ -151,10 +151,10 @@ def sample(seed, ddtype, savedir):
 if __name__ == "__main__":
 
     # parse arguments
-    assert len(sys.argv) == 3
-    seed = int(sys.argv[0])
-    ddtype = int(sys.argv[1])
-    savedir = sys.argv[2]
+    assert len(sys.argv) == 4
+    seed = int(sys.argv[1])
+    ddtype = int(sys.argv[2])
+    savedir = sys.argv[3]
 
     # run sampler
     sample(seed, ddtype, savedir)
