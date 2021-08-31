@@ -21,8 +21,9 @@ if __name__ == '__main__':
     u_pos = (kpc / 5)
     u_vel = 100000
     cen = np.array([8 * kpc, 0.01 * kpc, 0, 220000, 0])
-    dfile = "../../data/0_400/compiled.npz"
-    data = get_rescaled_tensor(dfile, u_pos, u_vel, cen)
+    datadir = "../../data/400pc_noDD"
+    num_files = 100
+    data = get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen)
 
     # parse arguments
     assert len(sys.argv) == 2

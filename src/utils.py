@@ -99,7 +99,7 @@ def logit(x):
     return np.log(x / (1 - x))
 
 
-def get_rescaled_tensor(dfile, u_pos, u_vel, cen):
+def get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen):
     """
     Load data, rescale, recentre, shuffle, and make into torch tensor.
 
@@ -124,14 +124,14 @@ def get_rescaled_tensor(dfile, u_pos, u_vel, cen):
     """
     # load data
     print("Loading data...", flush=True)
-    data = np.load(dfile)
+    R, z, vR, vz, vphi = concatenate_data(datadir, num_files)
 
     # shift and rescale positions
-    R = (data['R'] - cen[0]) / u_pos
-    z = (data['z'] - cen[1]) / u_pos
-    vR = (data['vR'] - cen[2]) / u_vel
-    vphi = (data['vphi'] - cen[3]) / u_vel
-    vz = (data['vz'] - cen[4]) / u_vel
+    R = (R - cen[0]) / u_pos
+    z = (z - cen[1]) / u_pos
+    vR = (vR - cen[2]) / u_vel
+    vphi = (vphi - cen[3]) / u_vel
+    vz = (vz - cen[4]) / u_vel
 
     # stack and shuffle data
     data = np.stack((R, z, vR, vphi, vz), axis=-1)
@@ -144,60 +144,28 @@ def get_rescaled_tensor(dfile, u_pos, u_vel, cen):
     return data_tensor
 
 
-def get_rescaled_tensor_trans(dfile, u_pos, u_vel, cen):
-    """
-    Load data, rescale, recentre, transform position coordinates, shuffle,
-    and make into torch tensor.
+def concatenate_data(datadir, num_files):
 
-    Parameters
-    ----------
-    dfile : str
-        Path to .npz file containing dataset, e.g. files in /data directory.
-    u_pos : float
-        Rescaling for R, z. UNITS: m.
-    u_vel : float
-        Velocity rescaling. UNITS: m/s.
-    cen : np.array, shape (5)
-        Phase point about which to re-centre data, (R, z, vR, vphi, vz). UNITS:
-        (m, m, m/s, m/s, m/s).
+    # check if dir ends in '/', otherwise append
+    if datadir[-1] != '/':
+        datadir += '/'
 
-    Returns
-    -------
-    data_tensor : torch.Tensor, shape (N, 5)
-        Torch tensor containing dataset ready to train flow. Shape is (N, 5),
-        where N is number of data points.
+    # loop over files
+    R = np.array([])
+    z = np.array([])
+    vR = np.array([])
+    vz = np.array([])
+    vphi = np.array([])
+    for k in range(num_files):
 
-    """
-    # load data
-    print("Loading data...")
-    data = np.load(dfile)
+        # load file
+        d = np.load(datadir + f"{k}.npz")
 
-    # shift and rescale positions
-    R = (data['R'] - cen[0]) / u_pos + 0.5
-    z = (data['z'] - cen[1]) / u_pos + 0.5
-    vR = (data['vR'] - cen[2]) / u_vel
-    vphi = (data['vphi'] - cen[3]) / u_vel
-    vz = (data['vz'] - cen[4]) / u_vel
+        # append data
+        R = np.append(R, d['R'])
+        z = np.append(z, d['z'])
+        vR = np.append(vR, d['vR'])
+        vz = np.append(vz, d['vz'])
+        vphi = np.append(vphi, d['vphi'])
 
-    # transform poositions
-    qR = logit(R)
-    qz = logit(z)
-
-    # get rid of data points with very high transformed radii
-    mask = (np.abs(qR) < 8) & (np.abs(qz) < 8)
-    print(f"Keeping {mask.sum()} data points...")
-    qR = qR[mask]
-    qz = qz[mask]
-    vR = vR[mask]
-    vphi = vphi[mask]
-    vz = vz[mask]
-
-    # stack and shuffle data
-    data = np.stack((qR, qz, vR, vphi, vz), axis=-1)
-    rng = np.random.RandomState(42)
-    rng.shuffle(data)
-
-    # make torch tensor
-    data_tensor = torch.from_numpy(data.astype(np.float32))
-
-    return data_tensor
+    return R, z, vR, vz, vphi
