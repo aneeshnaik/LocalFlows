@@ -69,7 +69,7 @@ def qiso_lndf(theta, lim, qdfs, weights):
     return lnf
 
 
-def sample(seed):
+def sample(seed, ddtype, savedir):
     """
     Sample 10^6 particles from qDF, adopting given random seed.
 
@@ -83,11 +83,15 @@ def sample(seed):
     None.
 
     """
+    # check if dir ends in '/', otherwise append
+    if savedir[-1] != '/':
+        savedir += '/'
+
     # convert lim to metres
     lim = 0.4 * kpc
 
     # set up MW potential
-    mw = create_MW_potential(darkdisc=True, ddtype=1)
+    mw = create_MW_potential(darkdisc=True, ddtype=ddtype)
 
     # load MAP parameters
     fname = "../data/MAPs.txt"
@@ -139,7 +143,7 @@ def sample(seed):
     vR = s.flatchain[:, 2]
     vphi = s.flatchain[:, 3]
     vz = s.flatchain[:, 4]
-    np.savez(f"400pc_DD1/{seed}", R=R, z=z, vR=vR, vphi=vphi, vz=vz,
+    np.savez(savedir + f"{seed}", R=R, z=z, vR=vR, vphi=vphi, vz=vz,
              lnprob=s.lnprobability)
     return
 
@@ -147,8 +151,10 @@ def sample(seed):
 if __name__ == "__main__":
 
     # parse arguments
-    assert len(sys.argv) == 2
-    seed = int(sys.argv[1])
+    assert len(sys.argv) == 3
+    seed = int(sys.argv[0])
+    ddtype = int(sys.argv[1])
+    savedir = sys.argv[2]
 
     # run sampler
-    sample(seed)
+    sample(seed, ddtype, savedir)

@@ -23,56 +23,36 @@ from constants import kpc, pc, Myr
 def create_MW_potential(darkdisc=False, ddtype=None):
     """Create galpy MW potential with desired dark disc type."""
     if darkdisc:
-        if ddtype == 1:
-            bulge = Bulge(alpha=1.8, rc=1.9 / 8., normalize=0.05)
-            disc1 = MNDisc(a=3. / 8., b=0.28 / 8., normalize=0.6)
-            disc2 = MN3Disc(hr=3. / 8., hz=0.01 / 8., normalize=0.06)
-            halo = Halo(a=16 / 8., normalize=0.29)
-            mw = bulge + disc1 + disc2 + halo
-        else:
+
+        # check ddtype allowed
+        if ddtype not in np.arange(1, 21):
             assert False, "Not supported yet!"
+
+        # load param file
+        inds, heights, norms = np.genfromtxt(
+            "../data/DD_params.txt", dtype=None, skip_header=1, unpack=True,
+            usecols=[0, 1, 2]
+        )
+        h_DD = heights[inds == ddtype][0] / 1000
+        norm_DD = norms[inds == ddtype][0]
+        norm_halo = 0.35 - norm_DD
+
+        # put MW together
+        bulge = Bulge(alpha=1.8, rc=1.9 / 8, normalize=0.05)
+        disc1 = MNDisc(a=3. / 8., b=0.28 / 8, normalize=0.6)
+        disc2 = MN3Disc(hr=3. / 8., hz=h_DD / 8, normalize=norm_DD)
+        halo = Halo(a=16 / 8., normalize=norm_halo)
+        mw = bulge + disc1 + disc2 + halo
+
     else:
+
+        # put MW together
         bulge = Bulge(alpha=1.8, rc=1.9 / 8., normalize=0.05)
         disc = MNDisc(a=3. / 8., b=0.28 / 8., normalize=0.6)
         halo = Halo(a=16 / 8., normalize=0.35)
         mw = bulge + disc + halo
+
     return mw
-
-
-# =============================================================================
-# def create_MW_potential_old(ddtype):
-#     """Create galpy MW potential with desired dark disc type."""
-#     if ddtype == 0:
-#         bulge = BulgePhi(alpha=1.8, rc=1.9 / 8., normalize=0.05)
-#         disc = DiscPhi(a=3. / 8., b=0.28 / 8., normalize=0.6)
-#         halo = HaloPhi(a=16 / 8., normalize=0.35)
-#         mw = bulge + disc + halo
-#     elif ddtype == 1:
-#         bulge = BulgePhi(alpha=1.8, rc=1.9 / 8., normalize=0.05)
-#         disc1 = DiscPhi(a=3. / 8., b=0.28 / 8., normalize=0.6)
-#         disc2 = DiscPhi(a=3. / 8., b=0.02 / 8., normalize=0.03)
-#         halo = HaloPhi(a=16 / 8., normalize=0.32)
-#         mw = bulge + disc1 + disc2 + halo
-#     elif ddtype == 2:
-#         bulge = BulgePhi(alpha=1.8, rc=1.9 / 8., normalize=0.05)
-#         disc1 = DiscPhi(a=3. / 8., b=0.28 / 8., normalize=0.6)
-#         disc2 = DiscPhi(a=3. / 8., b=0.02 / 8., normalize=0.06)
-#         halo = HaloPhi(a=16 / 8., normalize=0.29)
-#         mw = bulge + disc1 + disc2 + halo
-#     elif ddtype == 3:
-#         bulge = BulgePhi(alpha=1.8, rc=1.9 / 8., normalize=0.05)
-#         disc1 = DiscPhi(a=3. / 8., b=0.28 / 8., normalize=0.6)
-#         disc2 = DiscPhi(a=3. / 8., b=0.05 / 8., normalize=0.06)
-#         halo = HaloPhi(a=16 / 8., normalize=0.29)
-#         mw = bulge + disc1 + disc2 + halo
-#     elif ddtype == 4:
-#         bulge = BulgePhi(alpha=1.8, rc=1.9 / 8., normalize=0.05)
-#         disc1 = DiscPhi(a=3. / 8., b=0.28 / 8., normalize=0.6)
-#         disc2 = DiscPhi(a=3. / 8., b=0.1 / 8., normalize=0.06)
-#         halo = HaloPhi(a=16 / 8., normalize=0.29)
-#         mw = bulge + disc1 + disc2 + halo
-#     return mw
-# =============================================================================
 
 
 def calc_MW_az(pos, pot):
