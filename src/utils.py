@@ -167,7 +167,7 @@ def concatenate_data(datadir, num_files, R_cut=None, R_cen=8 * kpc):
             assert type(R_cen) in [float, np.float32, np.float64]
             inds = np.abs(d['R'] - R_cen) < R_cut
         else:
-            inds = np.ones(R.shape, dtype=bool)
+            inds = np.ones(d['R'].shape, dtype=bool)
 
         # append data
         R = np.append(R, d['R'][inds])
