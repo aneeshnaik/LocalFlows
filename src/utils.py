@@ -10,7 +10,7 @@ import numpy as np
 import torch
 from scipy.integrate import trapezoid
 
-from constants import pi
+from constants import pi, kpc
 
 
 def norm_pdf(f, x):
@@ -144,7 +144,7 @@ def get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen):
     return data_tensor
 
 
-def concatenate_data(datadir, num_files):
+def concatenate_data(datadir, num_files, R_cut=None, R_cen=8 * kpc):
 
     # check if dir ends in '/', otherwise append
     if datadir[-1] != '/':
@@ -161,11 +161,19 @@ def concatenate_data(datadir, num_files):
         # load file
         d = np.load(datadir + f"{k}.npz")
 
+        # keep only stars within R_cut if specified
+        if R_cut is not None:
+            assert type(R_cut) in [float, np.float32, np.float64]
+            assert type(R_cen) in [float, np.float32, np.float64]
+            inds = np.abs(d['R'] - R_cen) < R_cut
+        else:
+            inds = np.ones(R.shape, dtype=bool)
+
         # append data
-        R = np.append(R, d['R'])
-        z = np.append(z, d['z'])
-        vR = np.append(vR, d['vR'])
-        vz = np.append(vz, d['vz'])
-        vphi = np.append(vphi, d['vphi'])
+        R = np.append(R, d['R'][inds])
+        z = np.append(z, d['z'][inds])
+        vR = np.append(vR, d['vR'][inds])
+        vz = np.append(vz, d['vz'][inds])
+        vphi = np.append(vphi, d['vphi'][inds])
 
     return R, z, vR, vz, vphi
