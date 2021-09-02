@@ -18,7 +18,7 @@ from utils import get_rescaled_tensor
 if __name__ == '__main__':
 
     # load data
-    u_pos = (kpc / 5)
+    u_pos = (kpc / 2)
     u_vel = 100000
     cen = np.array([8 * kpc, 0.01 * kpc, 0, 220000, 0])
     datadir = "../../data/full_MW_final_unperturbed"
