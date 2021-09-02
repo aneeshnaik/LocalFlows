@@ -99,7 +99,7 @@ def logit(x):
     return np.log(x / (1 - x))
 
 
-def get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen):
+def get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen, R_cut=None):
     """
     Load data, rescale, recentre, shuffle, and make into torch tensor.
 
@@ -124,7 +124,7 @@ def get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen):
     """
     # load data
     print("Loading data...", flush=True)
-    R, z, vR, vz, vphi = concatenate_data(datadir, num_files)
+    R, z, vR, vz, vphi = concatenate_data(datadir, num_files, R_cut=R_cut, R_cen=cen[0])
 
     # shift and rescale positions
     R = (R - cen[0]) / u_pos
