@@ -66,7 +66,7 @@ def qiso_lndf(theta, lim, qdfs, weights):
     return lnf
 
 
-def sample(seed, savedir):
+def sample(seed):
     """
     Sample 10^6 particles from qDF, adopting given random seed.
 
@@ -80,10 +80,6 @@ def sample(seed, savedir):
     None.
 
     """
-    # check if dir ends in '/', otherwise append
-    if savedir[-1] != '/':
-        savedir += '/'
-
     # convert lim to metres
     lim = 0.4 * kpc
 
