@@ -99,7 +99,7 @@ def logit(x):
     return np.log(x / (1 - x))
 
 
-def get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen, R_cut=None):
+def get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen, R_cut=None, z_cut=None):
     """
     Load data, rescale, recentre, shuffle, and make into torch tensor.
 
@@ -124,7 +124,7 @@ def get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen, R_cut=None):
     """
     # load data
     print("Loading data...", flush=True)
-    R, z, vR, vz, vphi = concatenate_data(datadir, num_files, R_cut=R_cut, R_cen=cen[0])
+    R, z, vR, vz, vphi = concatenate_data(datadir, num_files, R_cut=R_cut, z_cut=z_cut)
 
     # shift and rescale positions
     R = (R - cen[0]) / u_pos
@@ -144,7 +144,7 @@ def get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen, R_cut=None):
     return data_tensor
 
 
-def concatenate_data(datadir, num_files, R_cut=None, R_cen=8 * kpc):
+def concatenate_data(datadir, num_files, R_cut=None, R_cen=8 * kpc, z_cut=None):
 
     # check if dir ends in '/', otherwise append
     if datadir[-1] != '/':
@@ -165,7 +165,9 @@ def concatenate_data(datadir, num_files, R_cut=None, R_cen=8 * kpc):
         if R_cut is not None:
             assert type(R_cut) in [float, np.float32, np.float64]
             assert type(R_cen) in [float, np.float32, np.float64]
-            inds = np.abs(d['R'] - R_cen) < R_cut
+            assert z_cut is not None
+            assert type(z_cut) in [float, np.float32, np.float64]
+            inds = (np.abs(d['R'] - R_cen) < R_cut) & (np.abs(d['z']) < z_cut)
         else:
             inds = np.ones(d['R'].shape, dtype=bool)
 
