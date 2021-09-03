@@ -18,12 +18,12 @@ from utils import get_rescaled_tensor
 if __name__ == '__main__':
 
     # load data
-    u_pos = (kpc / 2)
+    u_pos = kpc
     u_vel = 100000
     cen = np.array([8 * kpc, 0.01 * kpc, 0, 220000, 0])
     datadir = "../../data/full_MW_initial"
     num_files = 2000
-    data = get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen, R_cut=1 * kpc)
+    data = get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen, R_cut=1 * kpc, z_cut=2.5 * kpc)
     print(f"Found {data.shape[0]} stars", flush=True)
 
     # parse arguments
