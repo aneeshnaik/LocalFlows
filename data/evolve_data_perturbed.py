@@ -20,9 +20,8 @@ from constants import kpc
 if __name__ == "__main__":
 
     # parse arguments
-    idx = 0
-    #assert len(sys.argv) == 2
-    #idx = int(sys.argv[1])
+    assert len(sys.argv) == 2
+    idx = int(sys.argv[1])
 
     # load dataset; convert data to galpy units; stack
     data = np.load(f"full_MW_initial/{idx}.npz")
