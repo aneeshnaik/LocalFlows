@@ -25,7 +25,7 @@ def create_MW_potential(darkdisc=False, ddtype=None):
     if darkdisc:
 
         # check ddtype allowed
-        if ddtype not in np.arange(1, 21):
+        if ddtype not in np.arange(20):
             assert False, "Not supported yet!"
 
         # load param file
