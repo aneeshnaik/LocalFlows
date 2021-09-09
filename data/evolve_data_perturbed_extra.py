@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-'Kick' stars, then evolve by 500 Myr in MW potential.
+Evolve stars by 500 Myr in MW potential.
 
 Created: August 2021
 Author: A. P. Naik
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     idx = int(sys.argv[1])
 
     # load dataset; convert data to galpy units; stack
-    data = np.load(f"full_MW_initial/{idx}.npz")
+    data = np.load(f"noDD_initial_perturbed_extra/{idx}.npz")
     u_x = 8 * kpc
     u_v = 220000
     R = data['R'] / u_x
@@ -33,14 +33,6 @@ if __name__ == "__main__":
     vz = data['vz'] / u_v
     vphi = data['vphi'] / u_v
     eta = np.stack((R, vR, vphi, z, vz), axis=-1)
-
-    # perturbation: 20% of stars kicked by 40km/s in +z direction
-    np.random.seed(42)
-    N = eta.shape[0]
-    N_kick = N // 5
-    kick_inds = np.random.choice(np.arange(N), size=N_kick, replace=False)
-    kick = 20000 / u_v
-    eta[kick_inds, -1] += kick
 
     # set up MW potential
     mw = create_MW_potential(0)
@@ -61,7 +53,6 @@ if __name__ == "__main__":
     z = o.getOrbit()[:, -1, 3] * u_x
     vz = o.getOrbit()[:, -1, 4] * u_v
     np.savez(
-        f"full_MW_final_perturbed_extra/{idx}.npz",
+        f"noDD_final_perturbed_extra/{idx}.npz",
         R=R, z=z, vR=vR, vphi=vphi, vz=vz,
     )
-

@@ -136,7 +136,7 @@ def sample(seed):
     vR = s.flatchain[:, 2]
     vphi = s.flatchain[:, 3]
     vz = s.flatchain[:, 4]
-    np.savez(f"full_MW_initial/{seed}", R=R, z=z, vR=vR, vphi=vphi, vz=vz,
+    np.savez(f"noDD_initial_unperturbed/{seed}", R=R, z=z, vR=vR, vphi=vphi, vz=vz,
              lnprob=s.lnprobability)
     return
 

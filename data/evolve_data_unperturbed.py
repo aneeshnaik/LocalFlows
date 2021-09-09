@@ -24,7 +24,7 @@ if __name__ == "__main__":
     idx = int(sys.argv[1])
 
     # load dataset; convert data to galpy units; stack
-    data = np.load(f"full_MW_initial/{idx}.npz")
+    data = np.load(f"noDD_initial_unperturbed/{idx}.npz")
     u_x = 8 * kpc
     u_v = 220000
     R = data['R'] / u_x
@@ -53,6 +53,6 @@ if __name__ == "__main__":
     z = o.getOrbit()[:, -1, 3] * u_x
     vz = o.getOrbit()[:, -1, 4] * u_v
     np.savez(
-        f"full_MW_final_unperturbed/{idx}.npz",
+        f"noDD_final_unperturbed/{idx}.npz",
         R=R, z=z, vR=vR, vphi=vphi, vz=vz,
     )
