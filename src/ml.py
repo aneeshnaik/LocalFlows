@@ -148,7 +148,7 @@ def calc_total_loss(flow, data):
     return loss
 
 
-def train_epoch(flow, data, batch_size, optimiser, scheduler):
+def train_epoch(flow, data, batch_size, optimiser, scheduler, total_losses):
     """
     Train flow model on data for one epoch.
 
@@ -181,15 +181,20 @@ def train_epoch(flow, data, batch_size, optimiser, scheduler):
     loader = DL(TDS(data), batch_size=batch_size, shuffle=True)
 
     # loop over batches in data
+    losses = np.array([])
     for batch_idx, batch in enumerate(loader):
         batch = batch[0]
         optimiser.zero_grad()
         loss = -flow.log_prob(inputs=batch, context=None).mean()
         loss.backward()
         optimiser.step()
+        losses = np.append(losses, loss.item())
 
     # compute total loss at end of epoch
-    loss = calc_total_loss(flow, data)
+    if total_losses:
+        loss = calc_total_loss(flow, data)
+    else:
+        loss = np.mean(losses)
 
     # step the lr scheduler
     scheduler.step(loss)
@@ -311,7 +316,8 @@ def train_flow(data, seed, n_dim=5, n_layers=8, n_hidden=64,
                lr=1e-3, lrgamma=0.5, lrpatience=5,
                lrmin=2e-6, lrthres=1e-6, lrcooldown=10,
                weight_decay=0, batch_size=10000, num_epochs=500,
-               save_intermediate=False, save_interval=10, cut_early=True):
+               save_intermediate=False, save_interval=10, cut_early=True,
+               total_losses=True):
     """
     Train normalising flow on data.
 
@@ -367,6 +373,9 @@ def train_flow(data, seed, n_dim=5, n_layers=8, n_hidden=64,
     cut_early : bool, optional
         If True, training is truncated early (i.e. before num_epochs) if
         learning rate reaches lrmin. The default is True.
+    total_losses : bool, optional
+        If True, total (i.e. full dataset) losses are calculated at end of each
+        epoch. Otherwise, losses are averaged across epoch. The default is True.
 
     Returns
     -------
@@ -384,9 +393,22 @@ def train_flow(data, seed, n_dim=5, n_layers=8, n_hidden=64,
     scheduler = ReduceLR(optimiser, factor=lrgamma, patience=lrpatience,
                          min_lr=lrmin, threshold=lrthres, cooldown=lrcooldown)
 
-    # compute total loss pre-training
+    # compute loss pre-training
     losses = np.zeros(num_epochs + 1)
-    loss = calc_total_loss(flow, data)
+    if total_losses:
+        loss = calc_total_loss(flow, data)
+    else:
+        flow.eval()
+        loader = DL(TDS(data), batch_size=batch_size, shuffle=True)
+
+        # loop over batches in data
+        loss_arr = np.array([])
+        with torch.no_grad():
+            for batch_idx, batch in enumerate(loader):
+                batch = batch[0]
+                loss = -flow.log_prob(inputs=data, context=None).mean().item()
+                loss_arr = np.append(loss_arr, loss)
+        loss = np.mean(loss_arr)
     losses[0] = loss
     print(f"Pre-training total loss={loss:.6e}", flush=True)
 
@@ -404,7 +426,7 @@ def train_flow(data, seed, n_dim=5, n_layers=8, n_hidden=64,
         print(f'\nStarting epoch {epoch}; lr={lr:.4e}', flush=True)
 
         # train 1 epoch
-        loss = train_epoch(flow, data, batch_size, optimiser, scheduler)
+        loss = train_epoch(flow, data, batch_size, optimiser, scheduler, total_losses)
         losses[epoch + 1] = loss
 
         # if best so far, save model
