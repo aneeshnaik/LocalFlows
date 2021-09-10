@@ -406,7 +406,7 @@ def train_flow(data, seed, n_dim=5, n_layers=8, n_hidden=64,
         with torch.no_grad():
             for batch_idx, batch in enumerate(loader):
                 batch = batch[0]
-                loss = -flow.log_prob(inputs=data, context=None).mean().item()
+                loss = -flow.log_prob(inputs=batch, context=None).mean().item()
                 loss_arr = np.append(loss_arr, loss)
         loss = np.mean(loss_arr)
     losses[0] = loss

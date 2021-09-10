@@ -9,7 +9,7 @@ Author: A. P. Naik
 import numpy as np
 import sys
 
-sys.path.append("../../src")
+sys.path.append("../../../src")
 from constants import kpc
 from ml import train_flow
 from utils import get_rescaled_tensor
@@ -31,4 +31,4 @@ if __name__ == '__main__':
     seed = int(sys.argv[1])
 
     # train flow
-    train_flow(data, seed, n_layers=8, n_hidden=64)
+    train_flow(data, seed, n_layers=8, n_hidden=64, total_losses=False)
