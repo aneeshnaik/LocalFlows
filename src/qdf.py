@@ -12,7 +12,7 @@ from galpy.potential import PowerSphericalPotentialwCutoff as Bulge
 from galpy.potential import MiyamotoNagaiPotential as MNDisc
 from galpy.potential import MN3ExponentialDiskPotential as MN3Disc
 from galpy.potential import NFWPotential as Halo
-from galpy.potential import evaluatezforces
+from galpy.potential import evaluatezforces, evaluateRforces
 from galpy.util.bovy_conversion import force_in_pcMyr2
 from galpy.actionAngle import actionAngleStaeckel
 from galpy.df import quasiisothermaldf as qdf
@@ -73,6 +73,28 @@ def calc_MW_az(pos, pot):
     # evaluate acc
     u = 8 * kpc
     a = evaluatezforces(pot, R / u, z / u)
+    a *= force_in_pcMyr2(220., 8.) * (pc / Myr**2)
+    return a
+
+
+def calc_MW_aR(pos, pot):
+    """
+    Evaluate true R-acceleration under MW model.
+
+    pos: (N, 3) or (3) np array, units: metres.
+    pot: galpy potential
+    """
+    # unpack
+    if pos.ndim == 2:
+        R = pos[:, 0]
+        z = pos[:, 2]
+    else:
+        R = pos[0]
+        z = pos[2]
+
+    # evaluate acc
+    u = 8 * kpc
+    a = evaluateRforces(pot, R / u, z / u)
     a *= force_in_pcMyr2(220., 8.) * (pc / Myr**2)
     return a
 

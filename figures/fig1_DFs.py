@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-SUMMARY.
+Figure 1: Comparison of true and modelled local DFs.
 
-Created: MONTH YEAR
+Created: September 2021
 Author: A. P. Naik
 """
 import numpy as np
@@ -33,14 +33,16 @@ N_px = 128
 ones = np.ones((N_px, N_px))
 zeros = np.zeros((N_px, N_px))
 R0 = 8 * kpc
-z0 = 0.01 * kpc
+z0 = 0.
 vR0 = 0.
 vphi0 = 220000.
 vz0 = 0.
-xlim = 0.5 * kpc
+
+Rlim = 1.1 * kpc
+zlim = 2.5 * kpc
 vlim = 80000
-R_arr = np.linspace(R0 - xlim, R0 + xlim, N_px)
-z_arr = np.linspace(z0 - xlim, z0 + xlim, N_px)
+R_arr = np.linspace(R0 - Rlim, R0 + Rlim, N_px)
+z_arr = np.linspace(-zlim, zlim, N_px)
 vR_arr = np.linspace(vR0 - vlim, vR0 + vlim, N_px)
 vphi_arr = np.linspace(vphi0 - vlim, vphi0 + vlim, N_px)
 vz_arr = np.linspace(vz0 - vlim, vz0 + vlim, N_px)
@@ -49,9 +51,9 @@ dfile = "fig1_data.npz"
 if not exists(dfile):
 
     # load flow ensemble
-    inds = np.arange(20)
-    flows = load_flow_ensemble(flowdir='../nflow_models/0_400', inds=inds,
-                               n_dim=5, n_layers=8, n_hidden=64)
+    flows = load_flow_ensemble(
+        flowdir='../nflow_models/noDD_initial_unperturbed', 
+        inds=np.arange(20), n_dim=5, n_layers=8, n_hidden=64)
 
     # load qDFs
     fname = "../data/MAPs.txt"
@@ -62,14 +64,14 @@ if not exists(dfile):
     sz = sr / np.sqrt(3)
     hsr = np.ones_like(hr)
     hsz = np.ones_like(hr)
-    mw = create_MW_potential(ddtype=0)
+    mw = create_MW_potential(ddtype=0) 
     qdfs = create_qdf_ensemble(hr, sr, sz, hsr, hsz, pot=mw)
 
     # flow arguments
-    u_q = (kpc / 5)
+    u_q = kpc
     u_p = 100000
-    q_cen = np.array([R0, 0, z0])
-    p_cen = np.array([vR0, vphi0, vz0])
+    q_cen = np.array([8 * kpc, 0, 0.01 * kpc])
+    p_cen = np.array([0, 220000, 0])
 
     # R-z: evaluate DF
     R_grid, z_grid = np.meshgrid(R_arr, z_arr, indexing='ij')
@@ -81,14 +83,14 @@ if not exists(dfile):
     f_model = f_model.reshape((N_px, N_px))
     f_true = calc_DF_true(q, p, qdfs, weights)
     f_true = f_true.reshape((N_px, N_px))
-    f_true[np.abs(R_grid - R0) > 0.4 * kpc] = 0
-    f_true[np.abs(z_grid - z0) > 0.4 * kpc] = 0
+    f_true[np.abs(R_grid - R0) > 1 * kpc] = 0
 
     # normalise
     norm_true = normalise_DF(f_true, R_arr, z_arr)
     norm_model = normalise_DF(f_model, R_arr, z_arr)
     f_true /= norm_true
     f_model /= norm_model
+
 
     # ref value
     f_ref = calc_DF_true(q_cen, p_cen, qdfs, weights) / norm_true
@@ -98,7 +100,7 @@ if not exists(dfile):
     # calculate residuals
     with np.errstate(divide='ignore', invalid='ignore'):
         res1 = np.divide((f1_model - f1_true), f1_true)
-
+        
     # vR-vphi: evaluate DF
     vR_grid, vphi_grid = np.meshgrid(vR_arr, vphi_arr, indexing='ij')
     q = np.stack((R0 * ones, zeros, z0 * ones), axis=-1)
@@ -135,7 +137,6 @@ if not exists(dfile):
     f_model = f_model.reshape((N_px, N_px))
     f_true = calc_DF_true(q, p, qdfs, weights)
     f_true = f_true.reshape((N_px, N_px))
-    f_true[np.abs(z_grid - z0) > 0.4 * kpc] = 0
 
     # normalise
     norm_true = normalise_DF(f_true, z_arr, vz_arr)
@@ -150,7 +151,7 @@ if not exists(dfile):
 
     # calculate residuals
     with np.errstate(divide='ignore', invalid='ignore'):
-        res3 = np.divide((f3_model - f3_true), f3_true)
+         res3 = np.divide((f3_model - f3_true), f3_true)
 
     np.savez(dfile, f1_true=f1_true, f1_model=f1_model, res1=res1,
              f2_true=f2_true, f2_model=f2_model, res2=res2,
@@ -172,8 +173,8 @@ else:
 # set up figure
 asp = 6.9 / 8.4
 fig = plt.figure(figsize=(6.9, 6.9 / asp), dpi=150)
-left = 0.075
-right = 0.98
+left = 0.085
+right = 0.985
 bottom = 0.125
 top = 0.97
 xgap = 0.0
@@ -202,10 +203,10 @@ imargs2 = {
 }
 
 # extents
-Rmin = (R0 - xlim) / kpc
-Rmax = (R0 + xlim) / kpc
-zmin = (z0 - xlim) / kpc
-zmax = (z0 + xlim) / kpc
+Rmin = (R0 - Rlim) / kpc
+Rmax = (R0 + Rlim) / kpc
+zmin = -zlim / kpc
+zmax = zlim / kpc
 vRmin = (vR0 - vlim) / 1000
 vRmax = (vR0 + vlim) / 1000
 vphimin = (vphi0 - vlim) / 1000
@@ -235,7 +236,7 @@ for i in range(3):
     ][i]
     ylabel = [
         r'$z\ [\mathrm{kpc}]$',
-        r'$v_\phi\ [\mathrm{km/s}]$',
+        r'$v_\varphi\ [\mathrm{km/s}]$',
         r'$v_z\ [\mathrm{km/s}]$'
     ][i]
 
@@ -266,3 +267,4 @@ cbar2.set_label(r'$f_\mathrm{model}/f_\mathrm{exact} - 1$')
 
 # save
 fig.savefig('fig1_DFs.pdf')
+
