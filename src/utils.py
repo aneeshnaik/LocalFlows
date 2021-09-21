@@ -9,6 +9,7 @@ Author: A. P. Naik
 import numpy as np
 import torch
 from scipy.integrate import trapezoid
+from tqdm import tqdm
 
 from constants import pi, kpc
 
@@ -144,7 +145,7 @@ def get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen, R_cut=None, z_cut
     return data_tensor
 
 
-def concatenate_data(datadir, num_files, R_cut=None, R_cen=8 * kpc, z_cut=None):
+def concatenate_data(datadir, num_files, R_cut=None, R_cen=8 * kpc, z_cut=None, verbose=False):
 
     # check if dir ends in '/', otherwise append
     if datadir[-1] != '/':
@@ -156,7 +157,11 @@ def concatenate_data(datadir, num_files, R_cut=None, R_cen=8 * kpc, z_cut=None):
     vR = np.array([])
     vz = np.array([])
     vphi = np.array([])
-    for k in range(num_files):
+    if verbose:
+        iterator = tqdm(range(num_files))
+    else:
+        iterator = range(num_files)
+    for k in iterator:
 
         # load file
         d = np.load(datadir + f"{k}.npz")
