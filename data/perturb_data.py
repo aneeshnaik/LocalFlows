@@ -14,7 +14,7 @@ if __name__ == "__main__":
     for idx in tqdm(range(2000)):
 
         # load dataset; convert data to galpy units; stack
-        data = np.load(f"noDD_initial_unperturbed/{idx}.npz")
+        data = np.load(f"noDD_up_t0/{idx}.npz")
         R = data['R']
         z = data['z']
         vR = data['vR']
@@ -31,6 +31,6 @@ if __name__ == "__main__":
 
         # save
         np.savez(
-            f"noDD_initial_perturbed/{idx}.npz",
+            f"noDD_p_t0/{idx}.npz",
             R=R, z=z, vR=vR, vphi=vphi, vz=vz,
         )

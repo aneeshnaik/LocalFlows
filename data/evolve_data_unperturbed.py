@@ -10,7 +10,7 @@ import numpy as np
 import sys
 
 from galpy.orbit import Orbit
-from galpy.util.bovy_conversion import time_in_Gyr
+from galpy.util.conversion import time_in_Gyr
 
 sys.path.append("../src")
 from qdf import create_MW_potential
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     idx = int(sys.argv[1])
 
     # load dataset; convert data to galpy units; stack
-    data = np.load(f"noDD_initial_unperturbed/{idx}.npz")
+    data = np.load(f"noDD_up_t0/{idx}.npz")
     u_x = 8 * kpc
     u_v = 220000
     R = data['R'] / u_x
@@ -35,24 +35,27 @@ if __name__ == "__main__":
     eta = np.stack((R, vR, vphi, z, vz), axis=-1)
 
     # set up MW potential
-    mw = create_MW_potential(0)
+    mw = create_MW_potential()
 
     # initialise orbit
     o = Orbit(eta)
 
     # orbit times: 500 Myr
-    ts = np.linspace(0, 0.5 / time_in_Gyr(220., 8.), 2)
+    t_array = np.array([0, 0.1, 0.2, 0.5]) / time_in_Gyr(220., 8.)
 
     # integrate orbit
-    o.integrate(ts, mw, method='leapfrog_c')
+    o.integrate(t_array, mw, method='leapfrog_c')
 
     # save
-    R = o.getOrbit()[:, -1, 0] * u_x
-    vR = o.getOrbit()[:, -1, 1] * u_v
-    vphi = o.getOrbit()[:, -1, 2] * u_v
-    z = o.getOrbit()[:, -1, 3] * u_x
-    vz = o.getOrbit()[:, -1, 4] * u_v
-    np.savez(
-        f"noDD_final_unperturbed/{idx}.npz",
-        R=R, z=z, vR=vR, vphi=vphi, vz=vz,
-    )
+    dirnames = ['t1', 't2', 't5']
+    for i in range(3):
+
+        R = o.getOrbit()[:, i + 1, 0] * u_x
+        vR = o.getOrbit()[:, i + 1, 1] * u_v
+        vphi = o.getOrbit()[:, i + 1, 2] * u_v
+        z = o.getOrbit()[:, i + 1, 3] * u_x
+        vz = o.getOrbit()[:, i + 1, 4] * u_v
+        np.savez(
+            f"noDD_up_{dirnames[i]}/{idx}.npz",
+            R=R, z=z, vR=vR, vphi=vphi, vz=vz,
+        )
