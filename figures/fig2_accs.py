@@ -26,7 +26,7 @@ if not exists(datafile):
     
     # load flows
     flows = load_flow_ensemble(
-        '../nflow_models/noDD_initial_unperturbed', 
+        '../nflow_models/noDD_up_t0', 
         inds=np.arange(20), n_dim=5, n_layers=8, n_hidden=64
     )
     
@@ -50,7 +50,7 @@ if not exists(datafile):
     
     # Z ACCELS
     # set up spatial arrays
-    lim = 1.1 * kpc
+    lim = 1.75 * kpc
     z_arr = np.linspace(-lim, lim, Nx)
     R_arr = 8 * kpc * np.ones_like(z_arr)
     phi_arr = np.zeros_like(z_arr)
@@ -163,7 +163,7 @@ ax1.set_ylim(-7.9, 0)
 ax0r.set_ylim(-0.2, 0.2)
 ax1r.set_ylim(-0.2, 0.2)
 for ax in [ax0, ax0r]:
-    ax.set_xticks(np.linspace(-1, 1, 9))
+    ax.set_xticks(np.linspace(-1.5, 1.5, 7))
 for ax in [ax1, ax1r]:
     ax.set_xticks(np.linspace(7, 9, 9))
 for ax in [ax0r, ax1r]:

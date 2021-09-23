@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Figure 5: Dependence of eta (central density accuracy) against # data points.
+Figure 6: Measured acceleration in perturbed datasets.
 
 Created: September 2021
 Author: A. P. Naik
@@ -38,7 +38,7 @@ if not exists(datafile):
     mw = create_MW_potential(darkdisc=False, ddtype=None)
 
     # set up spatial arrays
-    lim = 1.1 * kpc
+    lim = 1.75 * kpc
     z_arr = np.linspace(-lim, lim, Nx)
     R_arr = 8 * kpc * np.ones_like(z_arr)
     phi_arr = np.zeros_like(z_arr)
@@ -48,14 +48,9 @@ if not exists(datafile):
     y_true = calc_MW_az(pos, mw) / (pc / Myr**2)
     
     # loop over models
-    flowdirs = [
-        'noDD_initial_unperturbed',
-        'noDD_initial_perturbed',
-        'noDD_final_unperturbed',
-        'noDD_final_perturbed',
-    ]
-    y_model = np.zeros((4, Nx))
-    for i in range(4):
+    flowdirs = ['noDD_p_t0', 'noDD_p_t2', 'noDD_p_t5']
+    y_model = np.zeros((3, Nx))
+    for i in range(3):
     
         # load flows
         flows = load_flow_ensemble(
@@ -95,18 +90,20 @@ plt.rcParams['xtick.labelsize'] = 8
 
 # set up figure
 fig = plt.figure(figsize=(6.9, 3.5), dpi=150)
-left = 0.08
-right = 0.975
+left = 0.075
+right = 0.99
 top = 0.935
 bottom = 0.115
 rfrac = 1/4
-dX = (right - left) / 2
+dX = (right - left) / 3
 dY = (top - bottom) * (1 - rfrac)
 rdY = (top - bottom) * rfrac
 ax0 = fig.add_axes([left, bottom + rdY, dX, dY])
 ax1 = fig.add_axes([left + dX, bottom + rdY, dX, dY])
+ax2 = fig.add_axes([left + 2 * dX, bottom + rdY, dX, dY])
 ax0r = fig.add_axes([left, bottom, dX, rdY])
 ax1r = fig.add_axes([left + dX, bottom, dX, rdY])
+ax2r = fig.add_axes([left + 2 * dX, bottom, dX, rdY])
 
 # colour
 c_up = plt.cm.Spectral(np.linspace(0, 1, 10))[2][None]
@@ -114,45 +111,42 @@ c_p = plt.cm.Spectral(np.linspace(0, 1, 10))[8][None]
 
 # main plots
 ax0.plot(x, y_true, c='k', ls='dashed', zorder=0)
-ax1.plot(x, y_true, c='k', ls='dashed', zorder=0, label="Exact")
-ax0.scatter(x, y_model[0], c=c_up, s=8, zorder=1)
-ax0.scatter(x, y_model[1], c=c_p, s=8, zorder=1)
-ax1.scatter(x, y_model[2], c=c_up, s=8, zorder=1, label="Unperturbed")
-ax1.scatter(x, y_model[3], c=c_p, s=8, zorder=1, label="Perturbed")
+ax1.plot(x, y_true, c='k', ls='dashed', zorder=0)
+ax2.plot(x, y_true, c='k', ls='dashed', zorder=0, label="Exact")
+ax0.scatter(x, y_model[0], c=c_p, s=8, zorder=1)
+ax1.scatter(x, y_model[1], c=c_p, s=8, zorder=1)
+ax2.scatter(x, y_model[2], c=c_p, s=8, zorder=1, label="Model")
 
 # residuals
 r = y_model / y_true - 1
-ax0r.plot(x, r[0], lw=2, c=c_up)
-ax0r.plot(x, r[1], lw=2, c=c_p)
-ax1r.plot(x, r[2], lw=2, c=c_up)
-ax1r.plot(x, r[3], lw=2, c=c_p)
+ax0r.plot(x, r[0], lw=2, c=c_p)
+ax1r.plot(x, r[1], lw=2, c=c_p)
+ax2r.plot(x, r[2], lw=2, c=c_p)
 ax0r.plot(x, np.zeros_like(x), lw=0.5, ls='dashed', c='k')
 ax1r.plot(x, np.zeros_like(x), lw=0.5, ls='dashed', c='k')
+ax2r.plot(x, np.zeros_like(x), lw=0.5, ls='dashed', c='k')
 
 # labels etc
-ax0r.set_xlabel(r'$z\ [\mathrm{kpc}]$')
 ax1r.set_xlabel(r'$z\ [\mathrm{kpc}]$')
 ax0.set_ylabel(r'$a_z\ \left[\mathrm{pc/Myr}^2\right]$')
-ax1.legend(frameon=False)
-for ax in [ax0r, ax1r]:
+ax2.legend(frameon=False)
+for ax in [ax0r, ax1r, ax2r]:
     ax.set_ylim(-0.2, 0.2)
-for ax in [ax0, ax1]:
-    ax.set_ylim(-2.4, 2.4)
-for ax in [ax0, ax0r, ax1, ax1r]:
-    ax.set_xticks(np.linspace(-1, 1, 9))
-for ax in [ax0r, ax1r]:
-    ax.set_yticks([-0.2, -0.1, 0, 0.1, 0.2])
-for ax in [ax0, ax0r, ax1, ax1r]:
+for ax in [ax0, ax1, ax2]:
+    ax.set_ylim(-2.6, 2.6)
+    ax.tick_params(labelbottom=False)
+for ax in fig.axes:
     ax.set_xlim(x[0], x[-1])
-ax0.tick_params(labelbottom=False)
-ax1.tick_params(labelbottom=False)
-for ax in [ax0, ax1, ax0r, ax1r]:
     ax.tick_params(left=True, right=True, top=True, direction='inout')
-for ax in [ax1, ax1r]:
+    ax.set_xticks(np.linspace(-1.5, 1.5, 7))
+for ax in [ax0r, ax1r, ax2r]:
+    ax.set_yticks([-0.2, -0.1, 0, 0.1, 0.2])        
+for ax in [ax1, ax1r, ax2, ax2r]:
     ax.tick_params(labelleft=False)
 ax0r.set_ylabel("Model/Exact - 1")
-ax0.set_title(r"$t = 0$")
-ax1.set_title(r"$t = 500\ \mathrm{Myr}$")
+ax0.set_title(r"Initial")
+ax1.set_title(r"$200\ \mathrm{Myr}$")
+ax2.set_title(r"$500\ \mathrm{Myr}$")
 
 # save
 fig.savefig('fig6_diseq_accs.pdf')
