@@ -44,9 +44,9 @@ if not exists(datafile):
     a_true = calc_MW_az(pos, mw)
 
     # loop over Ndata
-    N_arr = np.array([100, 500, 900, 1300, 1700])
-    y = np.zeros(5)
-    for i in tqdm(range(5)):
+    N_arr = np.array([100, 500, 900, 1300, 1700, 2100, 2500])
+    y = np.zeros(7)
+    for i in tqdm(range(7)):
         
         # load flows
         flows = load_flow_ensemble(
