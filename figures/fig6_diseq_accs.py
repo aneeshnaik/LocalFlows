@@ -106,7 +106,6 @@ ax1r = fig.add_axes([left + dX, bottom, dX, rdY])
 ax2r = fig.add_axes([left + 2 * dX, bottom, dX, rdY])
 
 # colour
-c_up = plt.cm.Spectral(np.linspace(0, 1, 10))[2][None]
 c_p = plt.cm.Spectral(np.linspace(0, 1, 10))[8][None]
 
 # main plots
