@@ -23,8 +23,6 @@ def calc_S(q):
 
     # set up array of phi
     N_phi = 100
-    #phi_min = -pi / 10
-    #phi_max = pi / 10
     phi_min = -pi / 25
     phi_max = pi / 25
     phi_arr = torch.linspace(phi_min, phi_max, N_phi)
@@ -76,13 +74,12 @@ q = torch.tensor(q, requires_grad=True)
 S = calc_S(q).detach().numpy().reshape((N_px, N_px))
 
 # plot settings
-#plt.rcParams['text.usetex'] = True
-plt.rcParams['text.usetex'] = False
+plt.rcParams['text.usetex'] = True
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.size'] = 9
 plt.rcParams['ytick.labelsize'] = 8
 plt.rcParams['xtick.labelsize'] = 8
-c = plt.cm.Spectral(np.linspace(0, 1, 25))[:7]
+c = plt.cm.Spectral(np.linspace(0, 1, 20)[:6])
 
 # set up figure
 asp = 3.3 / 3.15
@@ -97,13 +94,15 @@ ax = fig.add_axes([left, bottom, dX, dY])
 # plot
 X = R_grid.reshape((N_px, N_px))/kpc
 Y = z_grid.reshape((N_px, N_px))/kpc
-cs = ax.contour(X, Y, S, levels=np.arange(0, 1.05, 0.15), colors=c)
+cs = ax.contour(X, Y, S, levels=np.arange(0.2, 0.8, 0.1), colors=c)
 
 # labels etc
-ax.clabel(cs)
+l_locs = [(7.975, 1.4), (7.975, 1.2), (7.975, 0.71), 
+          (7.975, 0.54), (7.975, 0.42), (7.975, 0.25)]
+ax.clabel(cs, fmt='%1.1f', manual=l_locs)
 ax.tick_params(direction='inout', right=True, top=True)
 ax.set_xlabel(r'$R\ [\mathrm{kpc}]$')
 ax.set_ylabel(r'$z\ [\mathrm{kpc}]$')
 
 # save
-#fig.savefig("figB1_sel_fun.pdf")
+fig.savefig("figB1_sel_fun.pdf")
