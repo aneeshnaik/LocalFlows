@@ -52,7 +52,7 @@ def get_maglim_sample():
     M = sample_magnitudes(N, rng)
     
     # helioc. distances: sample phi, -> cartesians,
-    phi = rng.uniform(low=-pi/10, high=pi/10, size=N)
+    phi = rng.uniform(low=-pi/25, high=pi/25, size=N)
     x = R * np.cos(phi)
     y = R * np.sin(phi)
     xs = x - 8 * kpc
@@ -73,6 +73,7 @@ def get_maglim_sample():
     
     # downsample again to 10^6
     N = R.size
+    print(f"Found {N} stars within magnitude cut", flush=True)
     inds = rng.choice(np.arange(N), size=1000000, replace=False)
     R = R[inds]
     z = z[inds]

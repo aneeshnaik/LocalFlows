@@ -23,8 +23,10 @@ def calc_S(q):
 
     # set up array of phi
     N_phi = 100
-    phi_min = -pi / 10
-    phi_max = pi / 10
+    #phi_min = -pi / 10
+    #phi_max = pi / 10
+    phi_min = -pi / 25
+    phi_max = pi / 25
     phi_arr = torch.linspace(phi_min, phi_max, N_phi)
     dphi = np.diff(phi_arr)[0]
     Dphi = phi_max - phi_min
@@ -74,7 +76,8 @@ q = torch.tensor(q, requires_grad=True)
 S = calc_S(q).detach().numpy().reshape((N_px, N_px))
 
 # plot settings
-plt.rcParams['text.usetex'] = True
+#plt.rcParams['text.usetex'] = True
+plt.rcParams['text.usetex'] = False
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.size'] = 9
 plt.rcParams['ytick.labelsize'] = 8
@@ -94,7 +97,7 @@ ax = fig.add_axes([left, bottom, dX, dY])
 # plot
 X = R_grid.reshape((N_px, N_px))/kpc
 Y = z_grid.reshape((N_px, N_px))/kpc
-cs = ax.contour(X, Y, S, levels=np.arange(0.1, 0.5, 0.05), colors=c)
+cs = ax.contour(X, Y, S, levels=np.arange(0, 1.05, 0.15), colors=c)
 
 # labels etc
 ax.clabel(cs)
@@ -103,4 +106,4 @@ ax.set_xlabel(r'$R\ [\mathrm{kpc}]$')
 ax.set_ylabel(r'$z\ [\mathrm{kpc}]$')
 
 # save
-fig.savefig("figB1_sel_fun.pdf")
+#fig.savefig("figB1_sel_fun.pdf")
