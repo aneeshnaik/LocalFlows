@@ -79,7 +79,7 @@ plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.size'] = 9
 plt.rcParams['ytick.labelsize'] = 8
 plt.rcParams['xtick.labelsize'] = 8
-c = plt.cm.Spectral(np.linspace(0, 1, 20)[:6])
+c = plt.cm.Spectral(np.linspace(0, 1, 40)[:12])
 
 # set up figure
 asp = 3.3 / 3.15
@@ -94,12 +94,14 @@ ax = fig.add_axes([left, bottom, dX, dY])
 # plot
 X = R_grid.reshape((N_px, N_px))/kpc
 Y = z_grid.reshape((N_px, N_px))/kpc
-cs = ax.contour(X, Y, S, levels=np.arange(0.2, 0.8, 0.1), colors=c)
+levels = [0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7]
+cs = ax.contour(X, Y, S, levels=levels, colors=c)
 
 # labels etc
-l_locs = [(7.975, 1.4), (7.975, 1.2), (7.975, 0.71), 
-          (7.975, 0.54), (7.975, 0.42), (7.975, 0.25)]
-ax.clabel(cs, fmt='%1.1f', manual=l_locs)
+l_locs = [(7.975, 1.35), (7.975, 1.2), (7.975, 0.71), 
+          (7.975, 0.54), (7.975, 0.38), (7.975, 0.25)]
+ax.clabel(cs, levels=[0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
+          fmt='%1.1f', manual=l_locs)
 ax.tick_params(direction='inout', right=True, top=True)
 ax.set_xlabel(r'$R\ [\mathrm{kpc}]$')
 ax.set_ylabel(r'$z\ [\mathrm{kpc}]$')

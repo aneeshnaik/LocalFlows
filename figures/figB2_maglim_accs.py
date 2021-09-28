@@ -29,8 +29,8 @@ def calc_S(q):
 
     # set up array of phi
     N_phi = 100
-    phi_min = -pi / 10
-    phi_max = pi / 10
+    phi_min = -pi / 25
+    phi_max = pi / 25
     phi_arr = torch.linspace(phi_min, phi_max, N_phi)
     dphi = np.diff(phi_arr)[0]
     Dphi = phi_max - phi_min
@@ -199,8 +199,8 @@ axr.set_xlabel(r'$z\ [\mathrm{kpc}]$')
 ax.set_ylabel(r'$a_z\ \left[\mathrm{pc/Myr}^2\right]$')
 axr.set_ylabel("Model/Exact - 1")
 ax.legend(frameon=False, loc='lower left')
-axr.set_ylim(-0.25, 0.45)
-ax.set_ylim(-3.3, 2.8)
+axr.set_ylim(-0.25, 0.5)
+ax.set_ylim(-3.5, 2.8)
 axr.set_yticks([-0.2, 0, 0.2, 0.4])
 for ax in [ax, axr]:
     ax.set_xlim(x[0], x[-1])
