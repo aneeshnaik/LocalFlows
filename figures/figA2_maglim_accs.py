@@ -76,15 +76,15 @@ def calc_DF_selcorr(q, p, u_q, u_p, q_cen, p_cen, flows):
     return f_true
 
 
-datafile = "figB2_data.npz"
+datafile = "figA2_data.npz"
 if not exists(datafile):
-    
+
     # flow args
     u_q = kpc
     u_p = 100000
     q_cen = np.array([8 * kpc, 0, 0.01 * kpc])
     p_cen = np.array([0, 220000, 0])
-    
+
     # set up spatial arrays
     Nx = 60
     Nv = 1000
@@ -93,11 +93,11 @@ if not exists(datafile):
     R_arr = 8 * kpc * np.ones_like(z_arr)
     phi_arr = np.zeros_like(z_arr)
     pos = np.stack((R_arr, phi_arr, z_arr), axis=-1)
-    
+
     # get true accels
     mw = create_MW_potential(darkdisc=False)
     a_true = calc_MW_az(pos, mw)
-    
+
     # load flows
     flowdir = "../nflow_models/test_maglim/mag/"
     f1 = load_flow_ensemble(
@@ -110,7 +110,7 @@ if not exists(datafile):
         flowdir=flowdir, inds=np.arange(20),
         n_dim=5, n_layers=8, n_hidden=64
     )
-    
+
     # get model accels
     a_v = np.zeros_like(a_true)
     a_m = np.zeros_like(a_true)
@@ -129,13 +129,13 @@ if not exists(datafile):
             v_min=10000
         )
         q = np.tile(pos[i][None], reps=[Nv, 1])
-    
+
         gxf, gvf = diff_DF(q=q, p=p, df_func=calc_DF_ensemble, df_args=args1)
         a_m[i] = calc_accel_CBE(q, p, gxf, gvf)[2]
-        
+
         gxf, gvf = diff_DF(q=q, p=p, df_func=calc_DF_selcorr, df_args=args1)
         a_mcorr[i] = calc_accel_CBE(q, p, gxf, gvf)[2]
-        
+
         gxf, gvf = diff_DF(q=q, p=p, df_func=calc_DF_ensemble, df_args=args2)
         a_v[i] = calc_accel_CBE(q, p, gxf, gvf)[2]
 
@@ -208,4 +208,4 @@ for ax in [ax, axr]:
     ax.tick_params(right=True, top=True, direction='inout')
 
 # save
-fig.savefig("figB2_maglim_accs.pdf")
+fig.savefig("figA2_maglim_accs.pdf")

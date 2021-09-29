@@ -98,7 +98,7 @@ levels = [0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7]
 cs = ax.contour(X, Y, S, levels=levels, colors=c)
 
 # labels etc
-l_locs = [(7.975, 1.35), (7.975, 1.2), (7.975, 0.71), 
+l_locs = [(7.975, 1.35), (7.975, 1.2), (7.975, 0.71),
           (7.975, 0.54), (7.975, 0.38), (7.975, 0.25)]
 ax.clabel(cs, levels=[0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
           fmt='%1.1f', manual=l_locs)
@@ -107,4 +107,4 @@ ax.set_xlabel(r'$R\ [\mathrm{kpc}]$')
 ax.set_ylabel(r'$z\ [\mathrm{kpc}]$')
 
 # save
-fig.savefig("figB1_sel_fun.pdf")
+fig.savefig("figA1_sel_fun.pdf")
