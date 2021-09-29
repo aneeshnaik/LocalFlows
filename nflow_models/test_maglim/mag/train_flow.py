@@ -47,10 +47,10 @@ def get_maglim_sample():
     R = data[0]
     z = data[1]
     N = R.size
-    
+
     # assign absolute magnitudes
     M = sample_magnitudes(N, rng)
-    
+
     # helioc. distances: sample phi, -> cartesians,
     phi = rng.uniform(low=-pi/25, high=pi/25, size=N)
     x = R * np.cos(phi)
@@ -59,18 +59,18 @@ def get_maglim_sample():
     ys = np.copy(y)
     zs = z - 0.01 * kpc
     d = np.sqrt(xs**2 + ys**2 + zs**2)
-    
+
     # convert M to apparent mag
     d_pc = 1000 * d / kpc
     m = M + 5*np.log10(d_pc) - 5
-    
+
     # keep only data with m < 20
     R = data[0][m < 20]
     z = data[1][m < 20]
     vR = data[2][m < 20]
     vz = data[3][m < 20]
     vphi = data[4][m < 20]
-    
+
     # downsample again to 10^6
     N = R.size
     print(f"Found {N} stars within magnitude cut", flush=True)
@@ -80,7 +80,7 @@ def get_maglim_sample():
     vR = vR[inds]
     vz = vz[inds]
     vphi = vphi[inds]
-    
+
     # shift and rescale positions
     u_pos = kpc
     u_vel = 100000

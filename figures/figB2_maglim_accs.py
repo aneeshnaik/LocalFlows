@@ -28,7 +28,7 @@ def calc_S(q):
     N_pts = R_arr.shape[0]
 
     # set up array of phi
-    N_phi = 100
+    N_phi = 250
     phi_min = -pi / 25
     phi_max = pi / 25
     phi_arr = torch.linspace(phi_min, phi_max, N_phi)
