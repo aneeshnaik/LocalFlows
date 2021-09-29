@@ -10,7 +10,7 @@ import numpy as np
 import sys
 import torch
 
-sys.path.append("../../../src")
+sys.path.append("../../src")
 from utils import concatenate_data
 from constants import pc, kpc, pi
 from ml import train_flow
@@ -63,7 +63,7 @@ def get_shifted_sample(seed):
 
     # load original (unshifted) data
     R_old, z_old, vR_old, vz_old, vphi_old = concatenate_data(
-        "../data/errors",
+        "../../data/test_errors",
         num_files=800,
         R_cut=2 * kpc,
         z_cut=2.5 * kpc,
