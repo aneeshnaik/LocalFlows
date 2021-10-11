@@ -146,7 +146,7 @@ def sample(seed):
 
     # set up sampler
     nwalkers, ndim = 40, 7
-    n_burnin = 10000
+    n_burnin = 1000
     n_iter = N
     thin = nwalkers
     s = Sampler(nwalkers, ndim, qiso_lndf, args=[qdfs, weights])
@@ -189,7 +189,7 @@ def sample(seed):
 if __name__ == "__main__":
 
     # parse arguments
-    assert len(sys.argv) == 3
+    assert len(sys.argv) == 2
     seed = int(sys.argv[1])
 
     # run sampler
