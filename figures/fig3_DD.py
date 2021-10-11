@@ -11,6 +11,11 @@ import sys
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from os.path import exists
+from galpy.potential import PowerSphericalPotentialwCutoff as Bulge
+from galpy.potential import MiyamotoNagaiPotential as MNDisc
+from galpy.potential import NFWPotential as Halo
+from galpy.potential import evaluateSurfaceDensities as calc_sig
+from galpy.util.conversion import surfdens_in_msolpc2 as conv_sig
 
 sys.path.append("../src")
 from ml import load_flow_ensemble, calc_DF_ensemble as calc_DF_model
@@ -50,9 +55,18 @@ if not exists(datafile):
     phi_arr = np.zeros_like(z_arr)
     pos = np.stack((R_arr, phi_arr, z_arr), axis=-1)
 
-    # get accels w/o DD
-    mw_def = create_MW_potential(darkdisc=False)
-    a_default = calc_MW_az(pos, mw_def)
+    # accelerations from baryons alone, and baryons+halo
+    bulge = Bulge(alpha=1.8, rc=1.9 / 8., normalize=0.05)
+    disc = MNDisc(a=3. / 8., b=0.28 / 8., normalize=0.6)
+    baryons = bulge + disc
+    baryons_plus = bulge + disc + Halo(a=16 / 8., normalize=0.26)
+    u = 8 * kpc
+    sig_b = [calc_sig(baryons, 1, np.abs(z) / u) for z in z_arr]
+    sig_b = np.array(sig_b) * conv_sig(220, 8) * M_sun / pc**2
+    a_b = - 2 * pi * G * sig_b * np.sign(z_arr)
+    sig_bp = [calc_sig(baryons_plus, 1, np.abs(z) / u) for z in z_arr]
+    sig_bp = np.array(sig_bp) * conv_sig(220, 8) * M_sun / pc**2
+    a_bp = - 2 * pi * G * sig_bp * np.sign(z_arr)
 
     # load flows
     flowdir = "../nflow_models/DD0"
@@ -90,9 +104,10 @@ if not exists(datafile):
     np.savez(
         datafile,
         x=z_arr / kpc,
-        y0=a_default / (pc / Myr**2),
-        y1=a_true / (pc / Myr**2),
-        y2=a_model / (pc / Myr**2)
+        y0=a_true / (pc / Myr**2),
+        y1=a_model / (pc / Myr**2),
+        y2=a_b / (pc / Myr**2),
+        y3=a_bp / (pc / Myr**2)
     )
 
 
@@ -102,6 +117,7 @@ x = data['x']
 y0 = data['y0']
 y1 = data['y1']
 y2 = data['y2']
+y3 = data['y3']
 
 # plot settings
 plt.rcParams['text.usetex'] = True
@@ -121,12 +137,16 @@ dY = top - bottom
 ax = fig.add_axes([left, bottom, dX, dY])
 
 # colour
-c = plt.cm.Spectral(np.linspace(0, 1, 10))[2][None]
+c1 = plt.cm.Spectral(np.linspace(0, 1, 10))[2][None]
+c2 = plt.cm.Spectral(np.linspace(0, 1, 10))[7][None]
+c3 = plt.cm.Spectral(np.linspace(0, 1, 10))[8][None]
 
 # plots
-ax.plot(x, y0, c='k', ls='dotted', zorder=0, label="Exact, no DD")
-ax.plot(x, y1, c='k', ls='dashed', zorder=0, label=r"Exact, DD")
-ax.scatter(x, y2, c=c, s=8, zorder=1, label="Model")
+ax.plot(x, y0, c='k', ls='dashed', zorder=0, label=r"Exact, DD")
+ax.scatter(x, y1, c=c1, s=8, zorder=1, label="Model")
+ax.plot(x, y2, c=c2, ls='dotted', zorder=0, label=r"$2\pi G \Sigma_\mathrm{b}$")
+ax.plot(x, y3, c=c3, ls='dotted', zorder=0, label=r"$2\pi G \Sigma_\mathrm{b+h}$")
+
 
 # secondary axis
 sax = ax.secondary_yaxis('right', functions=(acc2sig, sig2acc))
@@ -134,7 +154,7 @@ sax = ax.secondary_yaxis('right', functions=(acc2sig, sig2acc))
 # labels etc
 ax.set_xlabel(r'$z\ [\mathrm{kpc}]$')
 ax.set_ylabel(r'$a_z\ \left[\mathrm{pc/Myr}^2\right]$')
-sax.set_ylabel(r'$\mathrm{sgn}(z)\Sigma\ \left[\mathrm{M_\odot/pc^2}\right]$')
+sax.set_ylabel(r'$a_z / 2\pi G\ \left[\mathrm{M_\odot/pc^2}\right]$')
 ax.tick_params(left=True, top=True, direction='inout')
 sax.tick_params(right=True, direction='inout')
 ax.legend(frameon=False)

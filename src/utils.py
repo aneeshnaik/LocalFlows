@@ -21,6 +21,24 @@ def norm_pdf(f, x):
     return f
 
 
+def sample_magnitudes(N, rng):
+
+    # params
+    alpha = 0.55
+    x1 = -5
+    x2 = 12
+
+    # normalisation
+    eax1 = np.exp(alpha * x1)
+    eax2 = np.exp(alpha * x2)
+    A = alpha / (eax2 - eax1)
+
+    # sample
+    U = rng.uniform(size=N)
+    M = np.log(alpha * U / A + eax1) / alpha
+    return M
+
+
 def sample_velocities(Nv, v_max, v_mean, v_min):
     """Uniformly sample Nv velocities in ball of radius v_max centred on v_mean."""
     # magnitude
@@ -184,3 +202,5 @@ def concatenate_data(datadir, num_files, R_cut=None, R_cen=8 * kpc, z_cut=None, 
         vphi = np.append(vphi, d['vphi'][inds])
 
     return R, z, vR, vz, vphi
+
+
