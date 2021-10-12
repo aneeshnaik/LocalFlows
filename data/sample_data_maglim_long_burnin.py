@@ -146,7 +146,7 @@ def sample(seed):
 
     # set up sampler
     nwalkers, ndim = 40, 7
-    n_burnin = 1000
+    n_burnin = 10000
     n_iter = N
     thin = nwalkers
     s = Sampler(nwalkers, ndim, qiso_lndf, args=[qdfs, weights])
@@ -181,7 +181,7 @@ def sample(seed):
     vphi = s.flatchain[:, 4]
     vz = s.flatchain[:, 5]
     MG = s.flatchain[:, 6]
-    np.savez(f"maglim/{seed}", R=R, phi=phi, z=z, vR=vR, vphi=vphi, vz=vz,
+    np.savez(f"maglim_long_burnin/{seed}", R=R, phi=phi, z=z, vR=vR, vphi=vphi, vz=vz,
              MG=MG, lnprob=s.lnprobability)
     return
 
