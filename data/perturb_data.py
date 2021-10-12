@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-'Kick' stars, then save kicked dataset.
+'Kick' stars from fiducial dataset, then save kicked dataset.
+
+Individual data files are loaded one by one from "fiducial" directory. 10% are
+randomly subsampled, and 'kicked' by 20 km/s in +z direction. Individual files
+are then saved in "perturbed_t0" directory.
 
 Created: August 2021
 Author: A. P. Naik
 """
 import numpy as np
-from tqdm import tqdm
+from tqdm import trange
 
 if __name__ == "__main__":
 
-    for idx in tqdm(range(2000)):
+    for idx in trange(2000):
 
         # load dataset; convert data to galpy units; stack
-        data = np.load(f"noDD_up_t0/{idx}.npz")
+        data = np.load(f"fiducial/{idx}.npz")
         R = data['R']
         z = data['z']
         vR = data['vR']
@@ -31,6 +35,6 @@ if __name__ == "__main__":
 
         # save
         np.savez(
-            f"noDD_p_t0/{idx}.npz",
+            f"perturbed_t0/{idx}.npz",
             R=R, z=z, vR=vR, vphi=vphi, vz=vz,
         )

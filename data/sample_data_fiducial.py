@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Sample particles from qDFs.
+Sample particles in 'fiducial' dataset.
 
-Created: June 2021
+Given an integer random seed as an argument, sample 10^4 stars from sequence
+of qdfs, then save as "fiducial/{seed}.npz". Stars are sampled between R=1 and
+16 kpc, and |z| < 2.5 kpc. The qdf used takes its parameters from MAPs.txt.
+
+Created: August 2021
 Author: A. P. Naik
 """
 import sys
@@ -11,41 +15,8 @@ import numpy as np
 from emcee import EnsembleSampler as Sampler
 
 sys.path.append("../src")
-from constants import pc, kpc, pi
+from constants import kpc
 from qdf import create_MW_potential, create_qdf_ensemble
-from utils import sample_magnitudes
-
-
-def calc_helio_distance(R, phi, z):
-    """Convert Galactocentric R, phim z to distance from Sun."""
-    # convert to Galacto cartesian
-    x = R * np.cos(phi)
-    y = R * np.sin(phi)
-
-    # convert to heliocentric cartesian
-    xs = x - 8 * kpc
-    ys = np.copy(y)
-    zs = z - 0.01 * kpc
-
-    # convert to heliocentric sphericals
-    d = np.sqrt(xs**2 + ys**2 + zs**2)
-    return d
-
-
-def get_initial_magnitudes(rng, R, phi, z):
-    """Sample 1000 * nwalkers abs mags, convert to G, keep only G < 15."""
-    # initial sample
-    nwalkers = R.size
-    MG_tot = sample_magnitudes(1000 * nwalkers, rng).reshape((nwalkers, 1000))
-    d = calc_helio_distance(R, phi, z)
-    G = MG_tot + 5 * np.log10(d[:, None] / pc) - 5
-    assert ((G < 15).sum(axis=1) > 0).all()
-
-    # downsample
-    MG = np.zeros(nwalkers)
-    for i in range(nwalkers):
-        MG[i] = rng.choice(MG_tot[i][(G[i] < 15)])
-    return MG
 
 
 def qiso_lndf(theta, qdfs, weights):
@@ -65,28 +36,16 @@ def qiso_lndf(theta, qdfs, weights):
     -------
     lnf: float
         Natural log of DF evaluated at theta.
-
     """
     # unpack theta
     R = theta[0]
-    phi = theta[1]
-    z = theta[2]
-    vR = theta[3]
-    vphi = theta[4]
-    vz = theta[5]
-    MG = theta[6]
+    z = theta[1]
+    vR = theta[2]
+    vphi = theta[3]
+    vz = theta[4]
 
-    # spatial boundaries
-    R0 = 8 * kpc
-    if np.abs(R - R0) > 1 * kpc:
-        return -np.inf
-    if np.abs(phi) > pi / 25:
-        return -np.inf
-
-    # apparent mag limit
-    d = calc_helio_distance(R, phi, z)
-    G = MG + 5 * np.log10(d / pc) - 5
-    if G > 15:
+    # only allow stars in 1 < R < 16 kpc, |z| < 2.5 kpc
+    if (R > 16 * kpc) or (R < 1 * kpc) or (np.abs(z) > 2.5 * kpc):
         return -np.inf
 
     # galpy units
@@ -99,8 +58,6 @@ def qiso_lndf(theta, qdfs, weights):
         df = qdfs[i]
         w = weights[i]
         f += w * df(R / u_R, vR / u_v, vphi / u_v, z / u_R, vz / u_v)[0]
-    f *= np.exp(0.55 * MG)
-
     if f == 0:
         lnf = -np.inf
     else:
@@ -110,7 +67,7 @@ def qiso_lndf(theta, qdfs, weights):
 
 def sample(seed):
     """
-    Sample 10^6 particles from qDF, adopting given random seed.
+    Sample 10^4 particles from qDF sequence, adopting given random seed.
 
     Parameters
     ----------
@@ -126,7 +83,7 @@ def sample(seed):
     mw = create_MW_potential()
 
     # load MAP parameters
-    fname = "MAPs.txt"
+    fname = "../data/MAPs.txt"
     data = np.loadtxt(fname, skiprows=1)
     weights = data[:, 2]
     hr = data[:, 3] / 8
@@ -145,23 +102,19 @@ def sample(seed):
     N = 10000
 
     # set up sampler
-    nwalkers, ndim = 40, 7
-    n_burnin = 10000
+    nwalkers, ndim = 40, 5
+    n_burnin = 2000
     n_iter = N
     thin = nwalkers
     s = Sampler(nwalkers, ndim, qiso_lndf, args=[qdfs, weights])
 
     # set up initial walker positions
-    R = rng.uniform(low=7 * kpc, high=9 * kpc, size=nwalkers)
-    phi = rng.uniform(low=-pi / 25, high=pi / 25, size=nwalkers)
-    sgns = 2 * rng.integers(0, 2, size=nwalkers) - 1
-    az = rng.exponential(scale=0.3 * kpc, size=nwalkers)
-    z = sgns * az
+    R = rng.uniform(low=1 * kpc, high=16 * kpc, size=nwalkers)
+    z = rng.uniform(low=-2.5 * kpc, high=2.5 * kpc, size=nwalkers)
     vR = 50000 * rng.normal(size=nwalkers)
-    vphi = 220000 + 50000 * rng.normal(size=nwalkers)
+    vphi = 200000 + 50000 * rng.normal(size=nwalkers)
     vz = 50000 * rng.normal(size=nwalkers)
-    MG = get_initial_magnitudes(rng, R, phi, z)
-    p0 = np.stack((R, phi, z, vR, vphi, vz, MG), axis=-1)
+    p0 = np.stack((R, z, vR, vphi, vz), axis=-1)
 
     # burn in
     print("Burning in...")
@@ -175,14 +128,12 @@ def sample(seed):
 
     # save
     R = s.flatchain[:, 0]
-    phi = s.flatchain[:, 1]
-    z = s.flatchain[:, 2]
-    vR = s.flatchain[:, 3]
-    vphi = s.flatchain[:, 4]
-    vz = s.flatchain[:, 5]
-    MG = s.flatchain[:, 6]
-    np.savez(f"maglim_long_burnin/{seed}", R=R, phi=phi, z=z, vR=vR, vphi=vphi, vz=vz,
-             MG=MG, lnprob=s.lnprobability)
+    z = s.flatchain[:, 1]
+    vR = s.flatchain[:, 2]
+    vphi = s.flatchain[:, 3]
+    vz = s.flatchain[:, 4]
+    np.savez(f"fiducial/{seed}", R=R, z=z, vR=vR, vphi=vphi, vz=vz,
+             lnprob=s.lnprobability)
     return
 
 

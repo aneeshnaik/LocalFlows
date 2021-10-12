@@ -20,37 +20,13 @@ from galpy.df import quasiisothermaldf as qdf
 from constants import kpc, pc, Myr
 
 
-def create_MW_potential(darkdisc=False, ddtype=None):
-    """Create galpy MW potential with desired dark disc type."""
-    if darkdisc:
+def create_MW_potential():
+    """Create Bovy 2015 MW potential in galpy."""
 
-        # check ddtype allowed
-        if ddtype not in np.arange(20):
-            assert False, "Not supported yet!"
-
-        # load param file
-        inds, heights, norms = np.genfromtxt(
-            "../data/DD_params.txt", dtype=None, skip_header=1, unpack=True,
-            usecols=[0, 1, 2]
-        )
-        h_DD = heights[inds == ddtype][0] / 1000
-        norm_DD = norms[inds == ddtype][0]
-        norm_halo = 0.35 - norm_DD
-
-        # put MW together
-        bulge = Bulge(alpha=1.8, rc=1.9 / 8, normalize=0.05)
-        disc1 = MNDisc(a=3. / 8., b=0.28 / 8, normalize=0.6)
-        disc2 = MN3Disc(hr=3. / 8., hz=h_DD / 8, normalize=norm_DD)
-        halo = Halo(a=16 / 8., normalize=norm_halo)
-        mw = bulge + disc1 + disc2 + halo
-
-    else:
-
-        # put MW together
-        bulge = Bulge(alpha=1.8, rc=1.9 / 8., normalize=0.05)
-        disc = MNDisc(a=3. / 8., b=0.28 / 8., normalize=0.6)
-        halo = Halo(a=16 / 8., normalize=0.35)
-        mw = bulge + disc + halo
+    bulge = Bulge(alpha=1.8, rc=1.9 / 8., normalize=0.05)
+    disc = MNDisc(a=3. / 8., b=0.28 / 8., normalize=0.6)
+    halo = Halo(a=16 / 8., normalize=0.35)
+    mw = bulge + disc + halo
 
     return mw
 

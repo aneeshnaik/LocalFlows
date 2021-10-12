@@ -123,7 +123,7 @@ def sample(seed):
 
     """
     # set up MW potential
-    mw = create_MW_potential(darkdisc=False, ddtype=0)
+    mw = create_MW_potential()
 
     # load MAP parameters
     fname = "MAPs.txt"
