@@ -1,37 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Construct mag-limited sample then train flows on it.
+Train normalising flow.
 
-Created: September 2021
+Created: June 2021
 Author: A. P. Naik
 """
 import numpy as np
 import sys
 import torch
+from tqdm import trange
 
 sys.path.append("../../src")
-from utils import concatenate_data
-from constants import pc, kpc, pi
+from constants import pc, kpc, pi, year
 from ml import train_flow
-
-
-def sample_magnitudes(N, rng):
-
-    # params
-    alpha = 0.55
-    x1 = -5
-    x2 = 12
-
-    # normalisation
-    eax1 = np.exp(alpha * x1)
-    eax2 = np.exp(alpha * x2)
-    A = alpha / (eax2 - eax1)
-
-    # sample
-    U = rng.uniform(size=N)
-    M = np.log(alpha * U / A + eax1) / alpha
-    return M
+from utils import concatenate_data
 
 
 def vcart_to_vsph(vx, vy, vz, x, y, z):
@@ -56,32 +39,55 @@ def vsph_to_vcart(vr, vth, vphi, r, theta, phi):
     return vx, vy, vz
 
 
+def load_original_data():
+
+    datadir = "../../data/noDD_up_t0/"
+    num_files = 100
+
+    # loop over files
+    R = np.array([])
+    phi = np.array([])
+    z = np.array([])
+    vR = np.array([])
+    vz = np.array([])
+    vphi = np.array([])
+    MG = np.array([])
+    iterator = trange(num_files)
+    for k in iterator:
+
+        # load file
+        d = np.load(datadir + f"{k}.npz")
+
+        # append data
+        R = np.append(R, d['R'])
+        phi = np.append(phi, d['phi'])
+        z = np.append(z, d['z'])
+        vR = np.append(vR, d['vR'])
+        vz = np.append(vz, d['vz'])
+        vphi = np.append(vphi, d['vphi'])
+        MG = np.append(MG, d['MG'])
+
+    return R, phi, z, vR, vphi, vz, MG
+
+
 def get_shifted_sample(seed):
 
     # set up RNG for mag/phi assignment
-    rng = np.random.default_rng(42)
+    rng = np.random.default_rng(seed)
 
-    # load original (unshifted) data
-    R_old, z_old, vR_old, vz_old, vphi_old = concatenate_data(
-        "../../data/test_errors",
-        num_files=800,
-        R_cut=2 * kpc,
-        z_cut=2.5 * kpc,
-        verbose=True
-    )
+    # load data
+    datadir = "../../data/noDD_up_t0/"
+    num_files = 2000
+    R, z, vR, vz, vphi = concatenate_data(datadir, num_files, R_cut=1 * kpc, z_cut=2.5 * kpc)
 
-    # assign absolute magnitudes
-    N = R_old.size
-    M = sample_magnitudes(N, rng)
+    # randomly assign phi
+    phi = rng.uniform(low=-pi / 25, high=pi / 25, size=R.size)
 
-    # sample phi, convert to galactocentric cartesian
-    phi_old = rng.uniform(low=-pi/25, high=pi/25, size=N)
-    x = R_old * np.cos(phi_old)
-    y = R_old * np.sin(phi_old)
-    z = np.copy(z_old)
-    vx = vR_old * np.cos(phi_old) - vphi_old * np.sin(phi_old)
-    vy = vR_old * np.sin(phi_old) + vphi_old * np.cos(phi_old)
-    vz = np.copy(vz_old)
+    # convert to galactocentric cartesian
+    x = R * np.cos(phi)
+    y = R * np.sin(phi)
+    vx = vR * np.cos(phi) - vphi * np.sin(phi)
+    vy = vR * np.sin(phi) + vphi * np.cos(phi)
 
     # convert to heliocentric cartesian
     xs = x - 8 * kpc
@@ -92,85 +98,58 @@ def get_shifted_sample(seed):
     vzs = vz - 7000
 
     # convert to heliocentric sphericals
-    d = np.sqrt(xs**2 + ys**2 + zs**2)
-    phi = np.arctan2(ys, xs)
-    theta = np.arccos(zs / d)
+    ds = np.sqrt(xs**2 + ys**2 + zs**2)
+    phis = np.arctan2(ys, xs)
+    thetas = np.arccos(zs / ds)
     vlos, vth, vphi = vcart_to_vsph(vxs, vys, vzs, xs, ys, zs)
 
-    # get parallaxes and apparent mags
-    d_pc = d / pc
-    par = 1000 / d_pc
-    m = M + 5*np.log10(d_pc) - 5
+    # PMs
+    pmth = vth / ds
+    pmphi = vphi / ds
 
-    # assign errors
-    xp = [15, 20]
-    fp = [np.log10(0.02), np.log10(0.5)]
-    sig_par = 10**np.interp(m, xp=xp, fp=fp)
-    sig_vlos = 2000 * np.ones_like(vlos)
+    # convert to mas/yr
+    pmth_masyr = pmth * (648000000 * year) / pi
+    pmphi_masyr = pmphi * (648000000 * year) / pi
 
-    # new RNG for error assignment
-    rng = np.random.default_rng(seed)
-
-    # shift values
-    vlos_new = rng.normal(vlos, scale=sig_vlos)
-    par_new = rng.normal(par, scale=sig_par)
-    d_pc_new = 1000 / par_new
-    d_new = d_pc_new * pc
+    # generate errors, shift, convert back to vels
+    sig_PM = 0.025
+    pmth_masyr_new = rng.normal(loc=pmth_masyr, scale=sig_PM)
+    pmphi_masyr_new = rng.normal(loc=pmphi_masyr, scale=sig_PM)
+    pmth_new = pmth_masyr_new * pi / (648000000 * year)
+    pmphi_new = pmphi_masyr_new * pi / (648000000 * year)
+    vth_new = ds * pmth_new
+    vphi_new = ds * pmphi_new
 
     # back to heliocentric cartesians
-    x_new = d_new * np.cos(phi) * np.sin(theta)
-    y_new = d_new * np.sin(phi) * np.sin(theta)
-    z_new = d_new * np.cos(theta)
-    vx_new, vy_new, vz_new = vsph_to_vcart(vlos_new, vth, vphi, d_new, theta, phi)
+    vxs_new, vys_new, vzs_new = vsph_to_vcart(vlos, vth_new, vphi_new, ds, thetas, phis)
 
     # to galactocentric cartesians
-    x_new = x_new + 8 * kpc
-    y_new = np.copy(y_new)
-    z_new = z_new + 0.01 * kpc
-    vx_new = vx_new - 10000
-    vy_new = vy_new + 11000
-    vz_new = vz_new + 7000
+    vx_new = vxs_new - 10000
+    vy_new = vys_new + 11000
+    vz_new = vzs_new + 7000
 
-    # to galactocentric cylindricals
-    R_new = np.sqrt(x_new**2 + y_new**2)
-    phi_new = np.arctan2(y_new, x_new)
-    vR_new = vx_new * np.cos(phi_new) + vy_new * np.sin(phi_new)
-    vphi_new = -vx_new * np.sin(phi_new) + vy_new * np.cos(phi_new)
-
-    # keep only m < 20, +ve distance, within R and phi bounds
-    mask = ((m < 20) & (d_new > 0) & (R_new > 7 * kpc) & (R_new < 9 * kpc) & (phi_new > -pi/25) & (phi_new < pi/25))
-    R_new = R_new[mask]
-    z_new = z_new[mask]
-    vR_new = vR_new[mask]
-    vz_new = vz_new[mask]
-    vphi_new = vphi_new[mask]
-
-    # downsample again to 10^6
-    N_mask = mask.sum()
-    inds = rng.choice(np.arange(N_mask), size=1000000, replace=False)
-    R_new = R_new[inds]
-    z_new = z_new[inds]
-    vR_new = vR_new[inds]
-    vz_new = vz_new[inds]
-    vphi_new = vphi_new[inds]
+    # cylindricals
+    vR_new = vx_new * np.cos(phi) + vy_new * np.sin(phi)
+    vphi_new = -vx_new * np.sin(phi) + vy_new * np.cos(phi)
 
     # shift and rescale positions
     u_pos = kpc
     u_vel = 100000
     cen = np.array([8 * kpc, 0.01 * kpc, 0, 220000, 0])
-    R_new = (R_new - cen[0]) / u_pos
-    z_new = (z_new - cen[1]) / u_pos
+    R_new = (R - cen[0]) / u_pos
+    z_new = (z - cen[1]) / u_pos
     vR_new = (vR_new - cen[2]) / u_vel
     vphi_new = (vphi_new - cen[3]) / u_vel
     vz_new = (vz_new - cen[4]) / u_vel
 
     # stack and shuffle data
     data = np.stack((R_new, z_new, vR_new, vphi_new, vz_new), axis=-1)
-    rng = np.random.RandomState(42)
+    rng = np.random.default_rng(42)
     rng.shuffle(data)
 
     # make torch tensor
     data_tensor = torch.from_numpy(data.astype(np.float32))
+
     return data_tensor
 
 

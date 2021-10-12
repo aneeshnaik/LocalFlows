@@ -154,7 +154,7 @@ def get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen, R_cut=None, z_cut
 
     # stack and shuffle data
     data = np.stack((R, z, vR, vphi, vz), axis=-1)
-    rng = np.random.RandomState(42)
+    rng = np.random.default_rng(42)
     rng.shuffle(data)
 
     # make torch tensor
