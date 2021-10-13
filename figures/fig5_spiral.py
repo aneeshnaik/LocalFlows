@@ -21,9 +21,9 @@ zlim = 2.5 * kpc
 vlim = 80000
 
 # check if datafile exists, otherwise create and save
-datafile = "fig7_data.npz"
+datafile = "fig5_data.npz"
 if not exists(datafile):
-    
+
     # set up coordinate arrays
     N_px = 256
     ones = np.ones((N_px, N_px))
@@ -32,11 +32,11 @@ if not exists(datafile):
     vphi0 = 220000.
     z_arr = np.linspace(-zlim, zlim, N_px)
     vz_arr = np.linspace(-vlim, vlim, N_px)
-    
+
     # load flows
     flows = load_flow_ensemble(
-        flowdir='../nflow_models/noDD_p_t2', 
-        inds=np.arange(20), n_dim=5, n_layers=8, n_hidden=64)    
+        flowdir='../flows/perturbed_t2',
+        inds=np.arange(20), n_dim=5, n_layers=8, n_hidden=64)
     u_q = kpc
     u_p = 100000
     q_cen = np.array([8 * kpc, 0, 0.01 * kpc])
@@ -67,17 +67,17 @@ plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.size'] = 9
 plt.rcParams['ytick.labelsize'] = 8
 plt.rcParams['xtick.labelsize'] = 8
-norm = SymLogNorm(linthresh=0.002, linscale=0.002, vmin=-0.1, vmax=0.1, base=10)
+norm = SymLogNorm(linthresh=0.002, linscale=0.002, vmin=-0.1, vmax=0.1)
 imargs = {
-        'origin': 'lower',
-        'aspect': 'auto',
-        'cmap': 'Spectral_r',
-        'norm': norm
+    'origin': 'lower',
+    'aspect': 'auto',
+    'cmap': 'Spectral_r',
+    'norm': norm
 }
 
 # set up figure
 asp = 3.3 / 3.45
-fig = plt.figure(figsize=(3.3, 3.3/asp), dpi=150)
+fig = plt.figure(figsize=(3.3, 3.3 / asp), dpi=150)
 bottom = 0.105
 left = 0.155
 right = 0.94
@@ -85,7 +85,7 @@ dX = right - left
 dY = asp * dX
 cdY = 0.035
 ax = fig.add_axes([left, bottom, dX, dY])
-cax = fig.add_axes([left, bottom+dY, dX, cdY])
+cax = fig.add_axes([left, bottom + dY, dX, cdY])
 
 # extents
 zmin = -zlim / kpc
@@ -110,4 +110,4 @@ cbar.ax.xaxis.set_label_position('top')
 cbar.set_ticks([-0.1, -0.01, 0, 0.01, 0.1])
 
 # save
-fig.savefig("fig7_spiral.pdf")
+fig.savefig("fig5_spiral.pdf")

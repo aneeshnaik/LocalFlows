@@ -10,7 +10,6 @@ import numpy as np
 
 from galpy.potential import PowerSphericalPotentialwCutoff as Bulge
 from galpy.potential import MiyamotoNagaiPotential as MNDisc
-from galpy.potential import MN3ExponentialDiskPotential as MN3Disc
 from galpy.potential import NFWPotential as Halo
 from galpy.potential import evaluatezforces, evaluateRforces
 from galpy.util.conversion import force_in_pcMyr2

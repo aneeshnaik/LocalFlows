@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Figure 2: Local accelerations.
+Figure 3: a_R and a_z from mock dataset with proper motion errors.
 
-Created: September 2021
+Created: October 2021
 Author: A. P. Naik
 """
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
-from tqdm import tqdm
+from tqdm import trange
 from os.path import exists
 
 sys.path.append("../src")
-from ml import load_flow_ensemble, calc_DF_ensemble as calc_DF_model
+from ml import load_flow_ensemble, calc_DF_single
 from constants import kpc, pc, Myr
 from utils import sample_velocities, diff_DF
 from qdf import create_MW_potential, calc_MW_az, calc_MW_aR
@@ -21,33 +21,29 @@ from cbe import calc_accel_CBE
 
 
 # check if datafile exists, otherwise create and save
-datafile = "fig2_data.npz"
+datafile = "fig3_data.npz"
 if not exists(datafile):
-    
+
     # load flows
+    Nflows = 100
     flows = load_flow_ensemble(
-        '../nflow_models/noDD_up_t0', 
-        inds=np.arange(20), n_dim=5, n_layers=8, n_hidden=64
+        '../flows/test_errors',
+        inds=np.arange(Nflows), n_dim=5, n_layers=8, n_hidden=64
     )
-    
+
     # load MW model
-    mw = create_MW_potential(darkdisc=False, ddtype=None)
-    
+    mw = create_MW_potential()
+
     # flow args
     u_q = kpc
     u_p = 100000
     q_cen = np.array([8 * kpc, 0, 0.01 * kpc])
     p_cen = np.array([0, 220000, 0])
-    df_args = {
-        'u_q': u_q, 'u_p': u_p,
-        'q_cen': q_cen, 'p_cen': p_cen,
-        'flows': flows
-    }
-    
+
     # hyperparams
     Nv = 1000
     Nx = 60
-    
+
     # Z ACCELS
     # set up spatial arrays
     lim = 1.75 * kpc
@@ -55,43 +51,54 @@ if not exists(datafile):
     R_arr = 8 * kpc * np.ones_like(z_arr)
     phi_arr = np.zeros_like(z_arr)
     pos = np.stack((R_arr, phi_arr, z_arr), axis=-1)
-    
+
     # get true accels
     az_true = calc_MW_az(pos, mw)
-    
+
     # get model accels
-    az_model = np.zeros_like(az_true)
-    for i in tqdm(range(Nx)):
-        vel = sample_velocities(Nv=Nv, v_max=50000, v_mean=np.array([0, 220000, 0]), v_min=10000)
-        pos_tiled = np.tile(pos[i][None], reps=[Nv, 1])
-        gradxf_model, gradvf_model = diff_DF(q=pos_tiled, p=vel, df_func=calc_DF_model, df_args=df_args)
-        az_model[i] = calc_accel_CBE(pos_tiled, vel, gradxf_model, gradvf_model)[2]
+    az_model = np.zeros((Nx, Nflows))
+    for i in trange(Nx):
+        p = sample_velocities(Nv=Nv, v_max=50000, v_mean=p_cen, v_min=10000)
+        q = np.tile(pos[i][None], reps=[Nv, 1])
+        for j in range(Nflows):
+            args = {
+                'u_q': u_q, 'u_p': u_p,
+                'q_cen': q_cen, 'p_cen': p_cen,
+                'flow': flows[j]
+            }
+            gxf, gvf = diff_DF(q=q, p=p, df_func=calc_DF_single, df_args=args)
+            az_model[i, j] = calc_accel_CBE(q, p, gxf, gvf)[2]
     x0 = z_arr / kpc
     y0_true = az_true / (pc / Myr**2)
     y0_model = az_model / (pc / Myr**2)
-    
-    
+
     # R ACCELS
     # set up spatial arrays
     R_arr = np.linspace(7, 9, Nx) * kpc
     z_arr = np.zeros_like(R_arr)
     phi_arr = np.zeros_like(z_arr)
     pos = np.stack((R_arr, phi_arr, z_arr), axis=-1)
-    
+
     # get true accels
     aR_true = calc_MW_aR(pos, mw)
-    
+
     # get model accels
-    aR_model = np.zeros_like(aR_true)
-    for i in tqdm(range(Nx)):
-        vel = sample_velocities(Nv=Nv, v_max=50000, v_mean=np.array([0, 220000, 0]), v_min=10000)
-        pos_tiled = np.tile(pos[i][None], reps=[Nv, 1])
-        gradxf_model, gradvf_model = diff_DF(q=pos_tiled, p=vel, df_func=calc_DF_model, df_args=df_args)
-        aR_model[i] = calc_accel_CBE(pos_tiled, vel, gradxf_model, gradvf_model)[0]
+    aR_model = np.zeros((Nx, Nflows))
+    for i in trange(Nx):
+        p = sample_velocities(Nv=Nv, v_max=50000, v_mean=p_cen, v_min=10000)
+        q = np.tile(pos[i][None], reps=[Nv, 1])
+        for j in range(Nflows):
+            args = {
+                'u_q': u_q, 'u_p': u_p,
+                'q_cen': q_cen, 'p_cen': p_cen,
+                'flow': flows[j]
+            }
+            gxf, gvf = diff_DF(q=q, p=p, df_func=calc_DF_single, df_args=args)
+            aR_model[i, j] = calc_accel_CBE(q, p, gxf, gvf)[0]
     x1 = R_arr / kpc
     y1_true = aR_true / (pc / Myr**2)
     y1_model = aR_model / (pc / Myr**2)
-    
+
     # save
     np.savez(
         datafile,
@@ -99,15 +106,25 @@ if not exists(datafile):
         x1=x1, y1_true=y1_true, y1_model=y1_model
     )
 
-else:
-    data = np.load(datafile)
-    x0 = data['x0']
-    y0_true = data['y0_true']
-    y0_model = data['y0_model']
-    x1 = data['x1']
-    y1_true = data['y1_true']
-    y1_model = data['y1_model']
 
+# load data
+data = np.load(datafile)
+x0 = data['x0']
+y0_true = data['y0_true']
+y0_model = data['y0_model']
+x1 = data['x1']
+y1_true = data['y1_true']
+y1_model = data['y1_model']
+
+# medians and errors
+y0_median = np.median(y0_model, axis=-1)
+y0_q16 = np.percentile(y0_model, 16, axis=-1)
+y0_q84 = np.percentile(y0_model, 84, axis=-1)
+y0_err = np.stack((y0_median - y0_q16, y0_q84 - y0_median))
+y1_median = np.median(y1_model, axis=-1)
+y1_q16 = np.percentile(y1_model, 16, axis=-1)
+y1_q84 = np.percentile(y1_model, 84, axis=-1)
+y1_err = np.stack((y1_median - y1_q16, y1_q84 - y1_median))
 
 # plot settings
 plt.rcParams['text.usetex'] = True
@@ -123,7 +140,7 @@ right = 0.915
 top = 0.935
 bottom = 0.125
 gap = 0.02
-rfrac = 1/4
+rfrac = 1 / 4
 dX = (right - left - gap) / 2
 dY = (top - bottom) * (1 - rfrac)
 rdY = (top - bottom) * rfrac
@@ -136,14 +153,14 @@ ax1r = fig.add_axes([left + dX + gap, bottom, dX, rdY])
 c = plt.cm.Spectral(np.linspace(0, 1, 10))[2][None]
 
 # main plots
-ax0.plot(x0, y0_true, c='k', ls='dashed', zorder=0)
-ax0.scatter(x0, y0_model, c=c, s=8, zorder=1)
+ax0.plot(x0, y0_true, c='k', ls='dashed', zorder=0, lw=1)
+ax0.errorbar(x0, y0_median, y0_err, c=c, fmt='.', ms=4)
 ax1.plot(x1, y1_true, c='k', ls='dashed', zorder=0, label="Exact")
-ax1.scatter(x1, y1_model, c=c, s=8, zorder=1, label="Model")
+ax1.errorbar(x1, y1_median, y1_err, c=c, fmt='.', ms=4, label="Model")
 
 # residuals
-r0 = y0_model / y0_true - 1
-r1 = y1_model / y1_true - 1
+r0 = y0_median / y0_true - 1
+r1 = y1_median / y1_true - 1
 ax0r.plot(x0, r0, lw=2, c=c)
 ax1r.plot(x1, r1, lw=2, c=c)
 ax0r.plot(x0, np.zeros_like(x0), lw=0.5, ls='dashed', c='k')
@@ -181,5 +198,4 @@ ax0.set_title('Vertical Accelerations')
 ax1.set_title('Radial Accelerations')
 
 # save
-fig.savefig('fig2_accs.pdf')
-
+fig.savefig("fig3_error_accs.pdf")

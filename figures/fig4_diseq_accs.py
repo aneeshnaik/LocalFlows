@@ -9,7 +9,7 @@ Author: A. P. Naik
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
-from tqdm import tqdm
+from tqdm import trange
 from os.path import exists
 
 sys.path.append("../src")
@@ -21,13 +21,9 @@ from cbe import calc_accel_CBE
 
 
 # check if datafile exists, otherwise create and save
-datafile = "fig6_data.npz"
+datafile = "fig4_data.npz"
 if not exists(datafile):
 
-    # hyperparams
-    Nv = 1000
-    Nx = 60
-    
     # flow args
     u_q = kpc
     u_p = 100000
@@ -35,26 +31,27 @@ if not exists(datafile):
     p_cen = np.array([0, 220000, 0])
 
     # load MW model
-    mw = create_MW_potential(darkdisc=False, ddtype=None)
+    mw = create_MW_potential()
 
     # set up spatial arrays
+    Nx = 60
     lim = 1.75 * kpc
     z_arr = np.linspace(-lim, lim, Nx)
     R_arr = 8 * kpc * np.ones_like(z_arr)
     phi_arr = np.zeros_like(z_arr)
     pos = np.stack((R_arr, phi_arr, z_arr), axis=-1)
-    
+
     # get true accels
     y_true = calc_MW_az(pos, mw) / (pc / Myr**2)
-    
+
     # loop over models
-    flowdirs = ['noDD_p_t0', 'noDD_p_t2', 'noDD_p_t5']
+    flowdirs = ['perturbed_t0', 'perturbed_t2', 'perturbed_t5']
     y_model = np.zeros((3, Nx))
     for i in range(3):
-    
+
         # load flows
         flows = load_flow_ensemble(
-            '../nflow_models/' + flowdirs[i], 
+            '../flows/' + flowdirs[i],
             inds=np.arange(20), n_dim=5, n_layers=8, n_hidden=64
         )
         df_args = {
@@ -64,12 +61,14 @@ if not exists(datafile):
         }
 
         # get model accels
-        for j in tqdm(range(Nx)):
-            p = sample_velocities(Nv=Nv, v_max=50000, v_mean=np.array([0, 220000, 0]), v_min=10000)
+        Nv = 1000
+        v_args = {'Nv': Nv, 'v_max': 50000, 'v_min': 10000, 'v_mean': p_cen}
+        for j in trange(Nx):
+            p = sample_velocities(**v_args)
             q = np.tile(pos[j][None], reps=[Nv, 1])
             gxf, gvf = diff_DF(q, p, df_func=calc_DF_model, df_args=df_args)
             y_model[i, j] = calc_accel_CBE(q, p, gxf, gvf)[2] / (pc / Myr**2)
-    
+
     # save
     x = z_arr / kpc
     np.savez(datafile, x=x, y_true=y_true, y_model=y_model)
@@ -94,7 +93,7 @@ left = 0.075
 right = 0.99
 top = 0.935
 bottom = 0.115
-rfrac = 1/4
+rfrac = 1 / 4
 dX = (right - left) / 3
 dY = (top - bottom) * (1 - rfrac)
 rdY = (top - bottom) * rfrac
@@ -139,7 +138,7 @@ for ax in fig.axes:
     ax.tick_params(left=True, right=True, top=True, direction='inout')
     ax.set_xticks(np.linspace(-1.5, 1.5, 7))
 for ax in [ax0r, ax1r, ax2r]:
-    ax.set_yticks([-0.2, -0.1, 0, 0.1, 0.2])        
+    ax.set_yticks([-0.2, -0.1, 0, 0.1, 0.2])
 for ax in [ax1, ax1r, ax2, ax2r]:
     ax.tick_params(labelleft=False)
 ax0r.set_ylabel("Model/Exact - 1")
@@ -148,4 +147,4 @@ ax1.set_title(r"$200\ \mathrm{Myr}$")
 ax2.set_title(r"$500\ \mathrm{Myr}$")
 
 # save
-fig.savefig('fig6_diseq_accs.pdf')
+fig.savefig('fig4_diseq_accs.pdf')

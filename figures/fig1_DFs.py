@@ -52,7 +52,7 @@ if not exists(dfile):
 
     # load flow ensemble
     flows = load_flow_ensemble(
-        flowdir='../nflow_models/noDD_initial_unperturbed', 
+        flowdir='../flows/fiducial',
         inds=np.arange(20), n_dim=5, n_layers=8, n_hidden=64)
 
     # load qDFs
@@ -64,7 +64,7 @@ if not exists(dfile):
     sz = sr / np.sqrt(3)
     hsr = np.ones_like(hr)
     hsz = np.ones_like(hr)
-    mw = create_MW_potential(ddtype=0) 
+    mw = create_MW_potential()
     qdfs = create_qdf_ensemble(hr, sr, sz, hsr, hsz, pot=mw)
 
     # flow arguments
@@ -91,7 +91,6 @@ if not exists(dfile):
     f_true /= norm_true
     f_model /= norm_model
 
-
     # ref value
     f_ref = calc_DF_true(q_cen, p_cen, qdfs, weights) / norm_true
     f1_model = f_model / f_ref
@@ -100,7 +99,7 @@ if not exists(dfile):
     # calculate residuals
     with np.errstate(divide='ignore', invalid='ignore'):
         res1 = np.divide((f1_model - f1_true), f1_true)
-        
+
     # vR-vphi: evaluate DF
     vR_grid, vphi_grid = np.meshgrid(vR_arr, vphi_arr, indexing='ij')
     q = np.stack((R0 * ones, zeros, z0 * ones), axis=-1)
@@ -151,7 +150,7 @@ if not exists(dfile):
 
     # calculate residuals
     with np.errstate(divide='ignore', invalid='ignore'):
-         res3 = np.divide((f3_model - f3_true), f3_true)
+        res3 = np.divide((f3_model - f3_true), f3_true)
 
     np.savez(dfile, f1_true=f1_true, f1_model=f1_model, res1=res1,
              f2_true=f2_true, f2_model=f2_model, res2=res2,
@@ -267,4 +266,3 @@ cbar2.set_label(r'$f_\mathrm{model}/f_\mathrm{exact} - 1$')
 
 # save
 fig.savefig('fig1_DFs.pdf')
-

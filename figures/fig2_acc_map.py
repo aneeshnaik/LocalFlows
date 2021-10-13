@@ -19,17 +19,17 @@ from constants import pc, kpc, Myr
 from utils import sample_velocities, diff_DF
 from cbe import calc_accel_CBE
 
-datafile = "fig2alt_data.npz"
+datafile = "fig2_data.npz"
 if not exists(datafile):
 
     # load flows
     flows = load_flow_ensemble(
-        '../nflow_models/noDD_up_t0',
+        '../flows/fiducial',
         inds=np.arange(20), n_dim=5, n_layers=8, n_hidden=64
     )
 
     # load MW model
-    mw = create_MW_potential(darkdisc=False, ddtype=None)
+    mw = create_MW_potential()
 
     # flow args
     u_q = kpc
@@ -135,7 +135,7 @@ im5 = ax5.imshow(resR.T, **res_args)
 
 # colourbars
 cY_z = bottom + 2 * dY + cdY + gap
-cY_R = bottom 
+cY_R = bottom
 cax_z = fig.add_axes([left, cY_z, 2 * dX, cdY])
 cax_rz = fig.add_axes([left + 2 * dX, cY_z, dX, cdY])
 cax_R = fig.add_axes([left, cY_R, 2 * dX, cdY])
@@ -175,8 +175,9 @@ ax1.text(0.1, 0.925, "Exact", ha='left', va='center',
          transform=ax1.transAxes, bbox=bbox, zorder=100, fontsize='large')
 ax2.text(0.1, 0.925, "Residuals", ha='left', va='center',
          transform=ax2.transAxes, bbox=bbox, zorder=100, fontsize='large')
-ax2.text(1.075, 0.5, "Vertical", ha='left', va='center', transform=ax2.transAxes, fontsize='large')
-ax5.text(1.075, 0.5, "Radial", ha='left', va='center', transform=ax5.transAxes, fontsize='large')
+largs = {"ha": "left", "va": "center", "fontsize": "large"}
+ax2.text(1.075, 0.5, "Vertical", transform=ax2.transAxes, **largs)
+ax5.text(1.075, 0.5, "Radial", transform=ax5.transAxes, **largs)
 
 # save
-fig.savefig("fig2alt_acc_map.pdf")
+fig.savefig("fig2_acc_map.pdf")
