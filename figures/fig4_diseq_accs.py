@@ -105,21 +105,21 @@ ax1r = fig.add_axes([left + dX, bottom, dX, rdY])
 ax2r = fig.add_axes([left + 2 * dX, bottom, dX, rdY])
 
 # colour
-c_p = plt.cm.Spectral(np.linspace(0, 1, 10))[8][None]
+c = plt.cm.Spectral(np.linspace(0, 1, 10))[2][None]
 
 # main plots
 ax0.plot(x, y_true, c='k', ls='dashed', zorder=0)
 ax1.plot(x, y_true, c='k', ls='dashed', zorder=0)
 ax2.plot(x, y_true, c='k', ls='dashed', zorder=0, label="Exact")
-ax0.scatter(x, y_model[0], c=c_p, s=8, zorder=1)
-ax1.scatter(x, y_model[1], c=c_p, s=8, zorder=1)
-ax2.scatter(x, y_model[2], c=c_p, s=8, zorder=1, label="Model")
+ax0.scatter(x, y_model[0], c=c, s=8, zorder=1)
+ax1.scatter(x, y_model[1], c=c, s=8, zorder=1)
+ax2.scatter(x, y_model[2], c=c, s=8, zorder=1, label="Reconstruction")
 
 # residuals
 r = y_model / y_true - 1
-ax0r.plot(x, r[0], lw=2, c=c_p)
-ax1r.plot(x, r[1], lw=2, c=c_p)
-ax2r.plot(x, r[2], lw=2, c=c_p)
+ax0r.plot(x, r[0], lw=2, c=c)
+ax1r.plot(x, r[1], lw=2, c=c)
+ax2r.plot(x, r[2], lw=2, c=c)
 ax0r.plot(x, np.zeros_like(x), lw=0.5, ls='dashed', c='k')
 ax1r.plot(x, np.zeros_like(x), lw=0.5, ls='dashed', c='k')
 ax2r.plot(x, np.zeros_like(x), lw=0.5, ls='dashed', c='k')
@@ -141,7 +141,7 @@ for ax in [ax0r, ax1r, ax2r]:
     ax.set_yticks([-0.2, -0.1, 0, 0.1, 0.2])
 for ax in [ax1, ax1r, ax2, ax2r]:
     ax.tick_params(labelleft=False)
-ax0r.set_ylabel("Model/Exact - 1")
+ax0r.set_ylabel("Recon./Exact - 1")
 ax0.set_title(r"Initial")
 ax1.set_title(r"$200\ \mathrm{Myr}$")
 ax2.set_title(r"$500\ \mathrm{Myr}$")

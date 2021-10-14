@@ -10,11 +10,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 from os.path import exists
-from matplotlib.colors import SymLogNorm
+from matplotlib.colors import SymLogNorm, LinearSegmentedColormap
 
 sys.path.append("../src")
 from constants import kpc
 from ml import load_flow_ensemble, calc_DF_ensemble
+
+
+def create_cmap(clist):
+    """Create a pyplot colormap from given list of colours."""
+    cmap = LinearSegmentedColormap.from_list('mycmap', clist)
+    return cmap
+
 
 # grid extents
 zlim = 2.5 * kpc
@@ -60,6 +67,10 @@ f = np.load(datafile)['f']
 f_symm = 0.5 * (f + np.flip(np.flip(f, axis=0), axis=1))
 r = f / f_symm - 1
 
+# make colourmap
+c = plt.cm.Spectral(np.linspace(0, 1, 11))
+cmap = create_cmap([c[9], 'w', c[3]])
+
 
 # plot settings
 plt.rcParams['text.usetex'] = True
@@ -71,21 +82,22 @@ norm = SymLogNorm(linthresh=0.002, linscale=0.002, vmin=-0.1, vmax=0.1)
 imargs = {
     'origin': 'lower',
     'aspect': 'auto',
-    'cmap': 'Spectral_r',
+    'cmap': cmap,
     'norm': norm
 }
 
 # set up figure
-asp = 3.3 / 3.45
+asp = 3.3 / 3.6
 fig = plt.figure(figsize=(3.3, 3.3 / asp), dpi=150)
 bottom = 0.105
 left = 0.155
 right = 0.94
 dX = right - left
 dY = asp * dX
-cdY = 0.035
+gap = 0.025
+cdY = 0.04
 ax = fig.add_axes([left, bottom, dX, dY])
-cax = fig.add_axes([left, bottom + dY, dX, cdY])
+cax = fig.add_axes([left, bottom + gap + dY, dX, cdY])
 
 # extents
 zmin = -zlim / kpc

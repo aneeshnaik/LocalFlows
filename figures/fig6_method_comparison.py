@@ -115,6 +115,14 @@ y2_salomon = data['y2_salomon']
 y1_flows = data['y1_flows']
 y2_flows = data['y2_flows']
 
+# residuals
+with np.errstate(divide='ignore', invalid='ignore'):
+    r1_widmark = y1_widmark / y_true - 1
+    r2_widmark = y2_widmark / y_true - 1
+    r1_salomon = y1_salomon / y_true - 1
+    r2_salomon = y2_salomon / y_true - 1
+    r1_flows = y1_flows / y_true - 1
+    r2_flows = y2_flows / y_true - 1
 
 # plot settings
 plt.rcParams['text.usetex'] = True
@@ -125,14 +133,19 @@ plt.rcParams['xtick.labelsize'] = 8
 
 # set up figure
 fig = plt.figure(figsize=(6.9, 3.2), dpi=150)
-left = 0.07
+left = 0.075
 right = 0.98
 bottom = 0.12
 top = 0.92
+rfrac = 1 / 4
+dY = (top - bottom) * (1 - rfrac)
+rdY = (top - bottom) * rfrac
 dX = (right - left) / 2
-dY = (top - bottom)
-ax1 = fig.add_axes([left, bottom, dX, dY])
-ax2 = fig.add_axes([left + dX, bottom, dX, dY])
+ax1 = fig.add_axes([left, bottom + rdY, dX, dY])
+ax2 = fig.add_axes([left + dX, bottom + rdY, dX, dY])
+ax1r = fig.add_axes([left, bottom, dX, rdY])
+ax2r = fig.add_axes([left + dX, bottom, dX, rdY])
+
 
 # colour
 c1 = plt.cm.Spectral(np.linspace(0, 1, 10))[2][None]
@@ -140,25 +153,40 @@ c2 = plt.cm.Spectral(np.linspace(0, 1, 10))[7][None]
 c3 = plt.cm.Spectral(np.linspace(0, 1, 10))[8][None]
 
 # plot
-ax1.plot(x, -y_true, label="True", c='k', ls='dashed', zorder=10)
-ax1.scatter(x, -y1_flows, s=8, c=c1, label="This work")
-ax1.scatter(x, -y1_widmark, s=8, c=c2, label="DF-fitting")
-ax1.scatter(x, -y1_salomon, s=8, c=c3, label="Jeans analysis")
-ax2.plot(x, -y_true, label="True", c='k', ls='dashed', zorder=10)
-ax2.scatter(x, -y2_flows, c=c1, s=8)
-ax2.scatter(x, -y2_widmark, c=c2, s=8)
-ax2.scatter(x, -y2_salomon, c=c3, s=8)
+ax1.plot(x, -y_true, label="True", c='k', ls='dashed')
+ax1.plot(x, -y1_flows, lw=2, c=c1, label="This work")
+ax1.plot(x, -y1_widmark, lw=2, c=c2, label="DF-fitting")
+ax1.plot(x, -y1_salomon, lw=2, c=c3, label="Jeans analysis")
+ax2.plot(x, -y_true, label="True", c='k', ls='dashed')
+ax2.plot(x, -y2_flows, c=c1, lw=2)
+ax2.plot(x, -y2_widmark, c=c2, lw=2)
+ax2.plot(x, -y2_salomon, c=c3, lw=2)
+ax1r.plot(x, r1_flows, c=c1)
+ax1r.plot(x, r1_widmark, c=c2)
+ax1r.plot(x, r1_salomon, c=c3)
+ax2r.plot(x, r2_flows, c=c1)
+ax2r.plot(x, r2_widmark, c=c2)
+ax2r.plot(x, r2_salomon, c=c3)
+ax1r.plot([-0.1, 1.7], [0, 0], lw=0.5, ls='dashed', c='k')
+ax2r.plot([-0.1, 1.7], [0, 0], lw=0.5, ls='dashed', c='k')
 
 # labels etc
 ylim = ax2.get_ylim()
 ax1.set_ylim(ylim)
-ax1.set_xlabel(r'$z\ [\mathrm{kpc}]$')
-ax2.set_xlabel(r'$z\ [\mathrm{kpc}]$')
-ax1.set_ylabel(r'$a_z\ \left[\mathrm{pc/Myr}^2\right]$')
+for ax in [ax1r, ax2r]:
+    ax.set_yticks([-0.2, -0.1, 0, 0.1, 0.2])
+    ax.set_ylim(-0.2, 0.2)
+    ax.set_xlabel(r'$z\ [\mathrm{kpc}]$')
+ax1.set_ylabel(r'$|a_z|\ \left[\mathrm{pc/Myr}^2\right]$')
+ax1r.set_ylabel("Recon./Exact - 1")
 ax1.legend(frameon=False)
-ax1.tick_params(left=True, right=True, top=True, direction='inout')
-ax2.tick_params(left=True, right=True, top=True, direction='inout')
+for ax in fig.axes:
+    ax.tick_params(left=True, right=True, top=True, direction='inout')
+    ax.set_xlim(-0.07, 1.67)
 ax2.tick_params(labelleft=False)
+ax2r.tick_params(labelleft=False)
+ax1.tick_params(labelbottom=False)
+ax2.tick_params(labelbottom=False)
 ax1.set_title(r"Unperturbed")
 ax2.set_title(r"$500\ \mathrm{Myr}$ post-perturbation")
 

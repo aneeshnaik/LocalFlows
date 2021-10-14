@@ -252,7 +252,7 @@ for i in range(3):
     ax1.set_ylabel(ylabel)
     if i == 0:
         ax1.set_title('Exact')
-        ax2.set_title('Model')
+        ax2.set_title('Reconstruction')
         ax3.set_title('Residuals')
 
 # colourbar
@@ -262,7 +262,7 @@ cax2 = fig.add_axes([left + 2 * dX + xgap, CY, dX, CdY])
 cbar1 = plt.colorbar(im1, cax=cax1, orientation='horizontal')
 cbar2 = plt.colorbar(im3, cax=cax2, orientation='horizontal')
 cbar1.set_label(r'$f/f_\mathrm{ref}$')
-cbar2.set_label(r'$f_\mathrm{model}/f_\mathrm{exact} - 1$')
+cbar2.set_label(r'$f_\mathrm{recon.}/f_\mathrm{exact} - 1$')
 
 # save
 fig.savefig('fig1_DFs.pdf')

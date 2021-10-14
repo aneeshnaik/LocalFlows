@@ -156,7 +156,7 @@ c = plt.cm.Spectral(np.linspace(0, 1, 10))[2][None]
 ax0.plot(x0, y0_true, c='k', ls='dashed', zorder=0, lw=1)
 ax0.errorbar(x0, y0_median, y0_err, c=c, fmt='.', ms=4)
 ax1.plot(x1, y1_true, c='k', ls='dashed', zorder=0, label="Exact")
-ax1.errorbar(x1, y1_median, y1_err, c=c, fmt='.', ms=4, label="Model")
+ax1.errorbar(x1, y1_median, y1_err, c=c, fmt='.', ms=4, label="Reconstruction")
 
 # residuals
 r0 = y0_median / y0_true - 1
@@ -193,7 +193,7 @@ ax0.tick_params(labelbottom=False)
 ax1.tick_params(labelbottom=False)
 for ax in [ax0, ax1, ax0r, ax1r]:
     ax.tick_params(left=True, right=True, top=True, direction='inout')
-ax0r.set_ylabel("Model/Exact - 1")
+ax0r.set_ylabel("Recon./Exact - 1")
 ax0.set_title('Vertical Accelerations')
 ax1.set_title('Radial Accelerations')
 
