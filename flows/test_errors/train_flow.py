@@ -14,29 +14,7 @@ from tqdm import trange
 sys.path.append("../../src")
 from constants import pc, kpc, pi, year
 from ml import train_flow
-from utils import concatenate_data
-
-
-def vcart_to_vsph(vx, vy, vz, x, y, z):
-    R = np.sqrt(x**2 + y**2)
-    r = np.sqrt(R**2 + z**2)
-
-    vr = x/r * vx + y/r * vy + z/r * vz
-    vth = - (r / R) * (vz - (z / r) * vr)
-    vphi = (1 / R) * (x * vy - y * vx)
-    return vr, vth, vphi
-
-
-def vsph_to_vcart(vr, vth, vphi, r, theta, phi):
-    cp = np.cos(phi)
-    sp = np.sin(phi)
-    ct = np.cos(theta)
-    st = np.sin(theta)
-
-    vx = vr * cp * st + vth * cp * ct - vphi * sp
-    vy = vr * sp * st + vth * sp * ct + vphi * cp
-    vz = vr * ct - vth * st
-    return vx, vy, vz
+from utils import concatenate_data, vsph_to_vcart, vcart_to_vsph
 
 
 def get_shifted_sample(seed):
