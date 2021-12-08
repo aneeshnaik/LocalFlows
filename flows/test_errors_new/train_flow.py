@@ -22,11 +22,13 @@ def get_shifted_sample(seed):
     rng = np.random.default_rng(seed)
 
     # load data
+    print("Loading data...", flush=True)
     datadir = "../../data/fiducial/"
     num_files = 2000
     R, z, vR, vz, vphi = concatenate_data(datadir, num_files)
 
     # randomly assign phi
+    print("Shifting data...", flush=True)
     phi = rng.uniform(low=-pi / 25, high=pi / 25, size=R.size)
 
     # randomly assign phi
@@ -94,6 +96,15 @@ def get_shifted_sample(seed):
     phi_new = np.arctan2(y_new, x_new)
     vR_new = vx_new * np.cos(phi_new) + vy_new * np.sin(phi_new)
     vphi_new = -vx_new * np.sin(phi_new) + vy * np.cos(phi_new)
+
+    # keep only those within region of interest
+    m = (np.abs(R_new - 8 * kpc) < 1 * kpc) & (np.abs(z_new) < 2.5 * kpc)
+    print(f"{m.sum()} stars in region of interest", flush=True)
+    R_new = R_new[m]
+    z_new = z_new[m]
+    vR_new = vR_new[m]
+    vphi_new = vphi_new[m]
+    vz_new = vz_new[m]
 
     # shift and rescale positions
     u_pos = kpc
