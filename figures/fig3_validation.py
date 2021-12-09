@@ -405,4 +405,4 @@ ax0.set_title('Vertical Accelerations')
 ax1.set_title('Radial Accelerations')
 
 # save
-fig.savefig("fig3_error_accs.pdf")
+fig.savefig("fig3_validation.pdf")
