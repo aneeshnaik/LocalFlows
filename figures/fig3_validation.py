@@ -359,7 +359,7 @@ ax0.errorbar(x0, y0_median, y0_err, c=c1, fmt='.', ms=4)
 ax0.scatter(x0, y0_RV, c=c2, s=8, zorder=1)
 ax1.plot(x1, y1_true, c='k', ls='dashed', zorder=0, label="Exact")
 ax1.errorbar(x1, y1_median, y1_err, c=c1, fmt='.', ms=4, label=r"\textit{Gaia}-like uncertainties")
-ax1.scatter(x1, y1_RV, c=c2, s=8, zorder=1, label="Missing RVs")
+ax1.scatter(x1, y1_RV, c=c2, s=8, zorder=1, label="Missing los velocities")
 
 # residuals
 r0_err = y0_median / y0_true - 1
