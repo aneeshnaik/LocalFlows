@@ -2,5 +2,6 @@
 *__pycache__
 *.sh
 *.out
+*.npz
 old
 analysis
