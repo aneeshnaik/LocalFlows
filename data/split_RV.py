@@ -10,15 +10,15 @@ import numpy as np
 import sys
 
 sys.path.append("../src")
-from utils import concatenate_data
+from utils import load_dset
 from constants import kpc
 
 if __name__ == "__main__":
 
-    # load fiducial dataset
-    R, z, vR, vz, vphi = concatenate_data("fiducial", num_files=2000,
-                                          R_cut=1 * kpc, z_cut=2.5 * kpc,
-                                          verbose=True)
+    # load fiducial dataset, only stars within [7, 9] kpc
+    R, z, vR, vz, vphi = load_dset(
+        "fiducial/dset.npz", R_cut=1 * kpc, z_cut=2.5 * kpc
+    )
 
     # save full dataset
     np.savez("test_RV/full_dset", R=R, z=z)

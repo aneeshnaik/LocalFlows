@@ -11,9 +11,17 @@ Created: August 2021
 Author: A. P. Naik
 """
 import numpy as np
+from os.path import exists
 from tqdm import trange
 
+
 if __name__ == "__main__":
+
+    # check subdir exists
+    if not exists("perturbed_t0"):
+        raise FileNotFoundError(
+            "Expected to find subdir 'perturbed_t2', try `mkdir perturbed_t0`"
+        )
 
     for idx in trange(2000):
 

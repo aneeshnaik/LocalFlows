@@ -13,6 +13,7 @@ Author: A. P. Naik
 """
 import numpy as np
 import sys
+from os.path import exists
 
 from galpy.orbit import Orbit
 from galpy.util.conversion import time_in_Gyr
@@ -23,6 +24,16 @@ from constants import kpc
 
 
 if __name__ == "__main__":
+
+    # check subdir exists
+    if not exists("perturbed_t2"):
+        raise FileNotFoundError(
+            "Expected to find subdir 'perturbed_t2', try `mkdir perturbed_t2`"
+        )
+    if not exists("perturbed_t5"):
+        raise FileNotFoundError(
+            "Expected to find subdir 'perturbed_t5', try `mkdir perturbed_t5`"
+        )
 
     # parse arguments
     assert len(sys.argv) == 2

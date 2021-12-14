@@ -5,13 +5,15 @@ Sample particles in 'fiducial' dataset.
 
 Given an integer random seed as an argument, sample 10^4 stars from sequence
 of qdfs, then save as "fiducial/{seed}.npz". Stars are sampled between R=1 and
-16 kpc, and |z| < 2.5 kpc. The qdf used takes its parameters from MAPs.txt.
+16 kpc, and |z| < 2.5 kpc. The qdf used takes its parameters from MAPs.txt. If
+"fiducial" subdir doesn't exist, then make it first.
 
 Created: August 2021
 Author: A. P. Naik
 """
 import sys
 import numpy as np
+from os.path import exists
 from emcee import EnsembleSampler as Sampler
 
 sys.path.append("../src")
@@ -138,6 +140,12 @@ def sample(seed):
 
 
 if __name__ == "__main__":
+
+    # check subdir exists
+    if not exists("fiducial"):
+        raise FileNotFoundError(
+            "Expected to find subdir 'fiducial', try `mkdir fiducial` first."
+        )
 
     # parse arguments
     assert len(sys.argv) == 2

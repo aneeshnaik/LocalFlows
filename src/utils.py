@@ -185,44 +185,61 @@ def get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen, R_cut=None, z_cut
     return data_tensor
 
 
-def concatenate_data(datadir, num_files, R_cut=None, R_cen=8 * kpc, z_cut=None, verbose=False):
+def load_dset(dfile, R_cut=None, z_cut=None):
+    """
+    Read saved .npz dataset, keeping only stars within specified cuts.
 
-    # check if dir ends in '/', otherwise append
-    if datadir[-1] != '/':
-        datadir += '/'
+    Parameters
+    ----------
+    dfile : str
+        .npz file containing stellar data.
+    R_cut : float, optional
+        Keep only stars within `R_cut` of 8 kpc. UNITS: metres. The default is
+        None.
+    z_cut : float, optional
+        Keep only stars within `z_cut` of the midplane. The default is None.
 
-    # loop over files
-    R = np.array([])
-    z = np.array([])
-    vR = np.array([])
-    vz = np.array([])
-    vphi = np.array([])
-    if verbose:
-        iterator = tqdm(range(num_files))
-    else:
-        iterator = range(num_files)
-    for k in iterator:
+    Returns
+    -------
+    R : 1D numpy array
+        Galactocentric cylindrical radius. UNITS: metres.
+    z : 1D numpy array
+        Height above Galactic midplane. UNITS: metres.
+    vR : 1D numpy array
+        Galactocentric cylindrical radial velocity. UNITS: metres/s.
+    vz : 1D numpy array
+        Galactocentric vertical velocity. UNITS: metres/s.
+    vphi : 1D numpy array
+        Galactocentric azimuthal velocity. UNITS: metres/s.
 
-        # load file
-        d = np.load(datadir + f"{k}.npz")
+    """
 
-        # keep only stars within R_cut if specified
-        if R_cut is not None:
-            assert type(R_cut) in [float, np.float32, np.float64]
-            assert type(R_cen) in [float, np.float32, np.float64]
-            assert z_cut is not None
-            assert type(z_cut) in [float, np.float32, np.float64]
-            inds = (np.abs(d['R'] - R_cen) < R_cut) & (np.abs(d['z']) < z_cut)
-        else:
-            inds = np.ones(d['R'].shape, dtype=bool)
+    # load data
+    d = np.load(dfile)
+    R = d['R']
+    z = d['z']
+    vR = d['vR']
+    vz = d['vz']
+    vphi = d['vphi']
 
-        # append data
-        R = np.append(R, d['R'][inds])
-        z = np.append(z, d['z'][inds])
-        vR = np.append(vR, d['vR'][inds])
-        vz = np.append(vz, d['vz'][inds])
-        vphi = np.append(vphi, d['vphi'][inds])
+    # apply spatial cut if requested
+    if R_cut is not None:
+
+        # check R_cut and z_cut makes sense
+        if z_cut is None:
+            raise ValueError("Need non-null z_cut if R_cut non-null.")
+        floats = [float, np.float32, np.float64]
+        if type(R_cut) not in floats:
+            raise TypeError("Wrong type for R_cut")
+        if type(z_cut) not in floats:
+            raise TypeError("Wrong type for z_cut")
+
+        # keep only data within cuts
+        inds = (np.abs(R - 8 * kpc) < R_cut) & (np.abs(z) < z_cut)
+        R = R[inds]
+        z = z[inds]
+        vR = vR[inds]
+        vz = vz[inds]
+        vphi = vphi[inds]
 
     return R, z, vR, vz, vphi
-
-
