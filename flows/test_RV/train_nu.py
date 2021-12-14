@@ -158,7 +158,7 @@ if __name__ == '__main__':
 
     # shift and rescale positions
     u_pos = kpc
-    cen = np.array([8 * kpc, 0.01 * kpc])
+    cen = np.array([8 * kpc, 0])
     R = (R - cen[0]) / u_pos
     z = (z - cen[1]) / u_pos
 

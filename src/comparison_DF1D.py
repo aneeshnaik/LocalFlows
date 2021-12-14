@@ -11,7 +11,7 @@ from scipy.integrate import trapezoid
 from emcee import EnsembleSampler as Sampler
 
 from constants import pc, G, pi, M_sun, kpc
-from utils import concatenate_data
+from utils import load_dset
 
 
 def calc_potential_DF1D(z, rho1, rho2, rho3, rho4):
@@ -115,13 +115,13 @@ def calc_lnlike_DF1D(theta, z_data, vz_data, z_cut):
     return lnf
 
 
-def get_bestpars_DF1D(datadir):
+def get_bestpars_DF1D(dfile):
 
     # load data
     print("Loading data...")
     z_cut = 2 * kpc
     R_cut = 0.2 * kpc
-    data = concatenate_data(datadir, num_files=2000, R_cut=R_cut, z_cut=z_cut)
+    data = load_dset(dfile, R_cut=R_cut, z_cut=z_cut)
     z = data[1]
     vz = data[3]
 

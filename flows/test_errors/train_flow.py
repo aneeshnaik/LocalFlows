@@ -13,7 +13,7 @@ import torch
 sys.path.append("../../src")
 from constants import kpc, pi, year
 from ml import train_flow
-from utils import concatenate_data, vsph_to_vcart, vcart_to_vsph
+from utils import load_dset, vsph_to_vcart, vcart_to_vsph
 
 
 def get_shifted_sample(seed):
@@ -23,9 +23,7 @@ def get_shifted_sample(seed):
 
     # load data
     print("Loading data...", flush=True)
-    datadir = "../../data/fiducial/"
-    num_files = 2000
-    R, z, vR, vz, vphi = concatenate_data(datadir, num_files)
+    R, z, vR, vz, vphi = load_dset("../../data/fiducial/dset.npz")
 
     # randomly assign phi
     print("Shifting data...", flush=True)
@@ -109,7 +107,7 @@ def get_shifted_sample(seed):
     # shift and rescale positions
     u_pos = kpc
     u_vel = 100000
-    cen = np.array([8 * kpc, 0.01 * kpc, 0, 220000, 0])
+    cen = np.array([8 * kpc, 0, 0, 220000, 0])
     R_new = (R_new - cen[0]) / u_pos
     z_new = (z_new - cen[1]) / u_pos
     vR_new = (vR_new - cen[2]) / u_vel

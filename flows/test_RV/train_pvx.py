@@ -163,7 +163,7 @@ if __name__ == '__main__':
     # shift and rescale positions
     u_pos = kpc
     u_vel = 100000
-    cen = np.array([8 * kpc, 0.01 * kpc, 0, 220000, 0])
+    cen = np.array([8 * kpc, 0, 0, 220000, 0])
     R = (R - cen[0]) / u_pos
     z = (z - cen[1]) / u_pos
     vR = (vR - cen[2]) / u_vel

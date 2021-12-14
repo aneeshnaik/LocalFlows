@@ -8,9 +8,6 @@ Author: A. P. Naik
 """
 import numpy as np
 import torch
-from scipy.integrate import trapezoid
-from tqdm import tqdm
-
 from constants import pi, kpc
 
 
@@ -36,33 +33,8 @@ def vsph_to_vcart(vr, vth, vphi, r, theta, phi):
     return vx, vy, vz
 
 
-def norm_pdf(f, x):
-    """Normalise a PDF over array x."""
-    norm = trapezoid(f, x)
-    f /= norm
-    return f
-
-
-def sample_magnitudes(N, rng):
-
-    # params
-    alpha = 0.55
-    x1 = -5
-    x2 = 12
-
-    # normalisation
-    eax1 = np.exp(alpha * x1)
-    eax2 = np.exp(alpha * x2)
-    A = alpha / (eax2 - eax1)
-
-    # sample
-    U = rng.uniform(size=N)
-    M = np.log(alpha * U / A + eax1) / alpha
-    return M
-
-
 def sample_velocities(Nv, v_max, v_mean, v_min):
-    """Uniformly sample Nv velocities in ball of radius v_max centred on v_mean."""
+    """Uniformly sample Nv velocities in ball radius v_max centre v_mean."""
     # magnitude
     v_mag = v_min + (v_max - v_min) * np.random.rand(Nv)
 
@@ -135,12 +107,7 @@ def diff_DF(q, p, df_func, df_args):
     return gradxf, gradvf
 
 
-def logit(x):
-    """Logit function."""
-    return np.log(x / (1 - x))
-
-
-def get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen, R_cut=None, z_cut=None):
+def get_rescaled_tensor(dfile, u_pos, u_vel, cen, R_cut=None, z_cut=None):
     """
     Load data, rescale, recentre, shuffle, and make into torch tensor.
 
@@ -164,8 +131,7 @@ def get_rescaled_tensor(datadir, num_files, u_pos, u_vel, cen, R_cut=None, z_cut
 
     """
     # load data
-    print("Loading data...", flush=True)
-    R, z, vR, vz, vphi = concatenate_data(datadir, num_files, R_cut=R_cut, z_cut=z_cut)
+    R, z, vR, vz, vphi = load_dset(dfile, R_cut=R_cut, z_cut=z_cut)
 
     # shift and rescale positions
     R = (R - cen[0]) / u_pos
@@ -192,7 +158,7 @@ def load_dset(dfile, R_cut=None, z_cut=None):
     Parameters
     ----------
     dfile : str
-        .npz file containing stellar data.
+        Path to .npz file containing dataset, e.g. files in /data directory.
     R_cut : float, optional
         Keep only stars within `R_cut` of 8 kpc. UNITS: metres. The default is
         None.

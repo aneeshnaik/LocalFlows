@@ -11,7 +11,7 @@ from scipy.stats import binned_statistic_2d as bin2d
 from emcee import EnsembleSampler as Sampler
 
 from constants import kpc, pi
-from utils import concatenate_data
+from utils import load_dset
 
 
 def calc_nu_model(R, z, nu0, hz, hR):
@@ -133,13 +133,13 @@ def calc_az_jeans(z, theta):
     return acc
 
 
-def get_bestpars_jeans(datadir):
+def get_bestpars_jeans(dfile):
 
     # load data
     print("Loading data")
     z_cut = 2.5 * kpc
     R_cut = 0.9 * kpc
-    data = concatenate_data(datadir, num_files=2000, R_cut=R_cut, z_cut=z_cut)
+    data = load_dset(dfile, R_cut=R_cut, z_cut=z_cut)
     R = data[0]
     z = data[1]
     vR = data[2]

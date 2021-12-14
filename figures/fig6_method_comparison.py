@@ -76,19 +76,19 @@ if not exists(datafile):
     y_true = calc_MW_az(pos, mw) / (pc / Myr**2)
 
     # model accels
-    th_widmark = get_bestpars_DF1D("../data/fiducial/")
+    th_widmark = get_bestpars_DF1D("../data/fiducial/dset.npz")
     a_widmark = calc_az_DF1D(z_arr, th_widmark)
     y1_widmark = a_widmark / (pc / Myr**2)
 
-    th_widmark = get_bestpars_DF1D("../data/perturbed_t5/")
+    th_widmark = get_bestpars_DF1D("../data/perturbed_t5/dset.npz")
     a_widmark = calc_az_DF1D(z_arr, th_widmark)
     y2_widmark = a_widmark / (pc / Myr**2)
 
-    th_salomon = get_bestpars_jeans("../data/fiducial/")
+    th_salomon = get_bestpars_jeans("../data/fiducial/dset.npz")
     a_salomon = calc_az_jeans(z_arr, th_salomon)
     y1_salomon = a_salomon / (pc / Myr**2)
 
-    th_salomon = get_bestpars_jeans("../data/perturbed_t5/")
+    th_salomon = get_bestpars_jeans("../data/perturbed_t5/dset.npz")
     a_salomon = calc_az_jeans(z_arr, th_salomon)
     y2_salomon = a_salomon / (pc / Myr**2)
 
