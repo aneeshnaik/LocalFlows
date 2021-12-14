@@ -3,13 +3,15 @@
 
 ## Summary
 
-This code was used to generate the results in the article Naik, An, Burrage, and Evans (2021). An earlier paper in the series ([An et al., 2021](https://arxiv.org/abs/2106.05981)) described a new method for calculating gravitational accelerations from a known stellar distribution function. Naik et al. (2021) then applied the method to mock data representing stars in the solar neighbourhood.
+This code was used to generate the results in the article Naik, An, Burrage, and Evans (2021): Charting galactic accelerations II: how to 'learn' accelerations in the solar neighbourhood. An earlier paper in the series ([An et al., 2021](https://arxiv.org/abs/2106.05981)) described a new method for calculating gravitational accelerations from a known stellar distribution function. Naik et al. (2021) then applied the method to mock data representing stars in the solar neighbourhood.
 
 The method is in two stages:
 1. We use normalising flows to 'learn' the distribution function of a 6D mock dataset. Here, our code is built around the implementation of masked autoregressive flows in the package `nflows`.
 2. We then convert these learned DFs to accelerations using our new technique.
 
 Please see our two papers for more details about the technique.
+
+As described below, the mock datasets used to generate the results in the paper are not stored in this repository, but [here](https://doi.org/10.5281/zenodo.5781350). Alternatively, the scripts in the `/data` folder can be used to generate the mock datasets anew.
 
 ## Citation
 
@@ -60,7 +62,7 @@ Before running these scripts, one has to create the following empty subdirectori
 - `perturbed_t5`
 - `test_RV`
 
-After running the scripts in sequence, these subdirectories are all filled with datasets in the form of `.npz` files. These filled subdirectories have been left out of this git repository to avoid bloating the repo. As an alternative to generating the data from scratch, you can download the pre-made datasets directly from LINK COMING SOON, where the 5 directories above are stored as `.zip` files. Simply unzip them and place the resulting directories within `/data`.
+After running the scripts in sequence, these subdirectories are all filled with datasets in the form of `.npz` files. These filled subdirectories have been left out of this git repository to avoid bloating the repo. As an alternative to generating the data from scratch, you can download the pre-made datasets directly from [Zenodo](https://doi.org/10.5281/zenodo.5781350), where the 5 directories above are stored as `.zip` files. Simply unzip them and place the resulting directories within `/data`.
 
 
 ### `/flows`
