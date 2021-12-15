@@ -3,7 +3,7 @@
 
 ## Summary
 
-This code was used to generate the results in the article Naik, An, Burrage, and Evans (2021): Charting galactic accelerations II: how to 'learn' accelerations in the solar neighbourhood. An earlier paper in the series ([An et al., 2021](https://arxiv.org/abs/2106.05981)) described a new method for calculating gravitational accelerations from a known stellar distribution function. Naik et al. (2021) then applied the method to mock data representing stars in the solar neighbourhood.
+This code was used to generate the results in the article [Naik, An, Burrage, and Evans (2021)](https://arxiv.org/abs/2112.07657): Charting galactic accelerations II: how to 'learn' accelerations in the solar neighbourhood. An earlier paper in the series ([An et al., 2021](https://arxiv.org/abs/2106.05981)) described a new method for calculating gravitational accelerations from a known stellar distribution function. Naik et al. (2021) then applied the method to mock data representing stars in the solar neighbourhood.
 
 The method is in two stages:
 1. We use normalising flows to 'learn' the distribution function of a 6D mock dataset. Here, our code is built around the implementation of masked autoregressive flows in the package `nflows`.
@@ -17,7 +17,7 @@ As described below, the mock datasets used to generate the results in the paper 
 
 Our code is freely available for use under the MIT License. For details, see LICENSE.
 
-If using our code, please cite our two papers, [An et al. (2021)](https://arxiv.org/abs/2106.05981) and Naik et al. (2021). 
+If using our code, please cite our two papers, [An et al. (2021)](https://arxiv.org/abs/2106.05981) and [Naik et al. (2021)](https://arxiv.org/abs/2112.07657). 
 
 Additionally, if using the normalising flow part of our code to learn DFs, please also consider citing the package `nflows` ([link](https://github.com/bayesiains/nflows)) around which that part of our code is built, as well as the article by [Green and Ting (2020)](https://arxiv.org/abs/2011.04673) in which the idea was first proposed.
 
