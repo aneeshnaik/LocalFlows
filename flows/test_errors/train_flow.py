@@ -93,7 +93,7 @@ def get_shifted_sample(seed):
     R_new = np.sqrt(x_new**2 + y_new**2)
     phi_new = np.arctan2(y_new, x_new)
     vR_new = vx_new * np.cos(phi_new) + vy_new * np.sin(phi_new)
-    vphi_new = -vx_new * np.sin(phi_new) + vy * np.cos(phi_new)
+    vphi_new = -vx_new * np.sin(phi_new) + vy_new * np.cos(phi_new)
 
     # keep only those within region of interest
     m = (np.abs(R_new - 8 * kpc) < 1 * kpc) & (np.abs(z_new) < 2.5 * kpc)
